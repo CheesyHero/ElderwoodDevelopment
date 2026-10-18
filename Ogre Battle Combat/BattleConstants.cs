@@ -7,10 +7,10 @@ public static class BattleConstants
     public static readonly float EXP_ExponentValue = 3f; // level ^ exponent 
     public static readonly float EXPCurve = 0.3f;
      
-    public static readonly Color commonColor = Color.gray2;
+    public static readonly Color commonColor = Color.grey;
     public static readonly Color uncommonColor = Color.cadetBlue;
     public static readonly Color rareColor = Color.gold;
-    public static readonly Color mythicColor = Color.red;
+    public static readonly Color mythicColor = new(250f / 255f, 113f / 255f, 22f / 255f);
     public static readonly Color legendaryColor = Color.purple;
 
     public static int GetEXPRequirement(int level)

@@ -67,6 +67,54 @@ public class Equipment : Item
 
         return sb.ToString();
     }
+    public override string PrintShortTooltip()
+    {
+        StringBuilder sb = new();
+
+        // Attributes
+        if (stats != null)
+        {
+            foreach (Enum_HeroAttributes a in Enum.GetValues(typeof(Enum_HeroAttributes)))
+            {
+                float v = stats.GetStat(a);
+                if (Mathf.Approximately(v, 0f))
+                    continue;
+
+                bool forceInt = (a == Enum_HeroAttributes.actions ||
+                                 a == Enum_HeroAttributes.reactions);
+
+                string num = forceInt
+                    ? $"{(v > 0 ? "+" : "")}{Mathf.RoundToInt(v)}"
+                    : $"{(v > 0 ? "+" : "")}{v:0.##}";
+
+                string color = v > 0 ? "green" : "red";
+
+                sb.AppendLine($" ~ {PrettyStatName(a)} <color={color}>{num}</color>");
+            }
+        }
+
+        // Abilities
+        if (skills != null)
+        {
+            foreach (var skill in skills)
+            {
+                if (skill == null) continue;
+                sb.AppendLine($" ~ {skill.skillName}");
+            }
+        }
+
+        // Passives
+        if (effects != null)
+        {
+            foreach (var passive in effects)
+            {
+                if (passive == null) continue;
+                sb.AppendLine($" ~ {passive.skillName}");
+            }
+        }
+
+        return sb.ToString().TrimEnd();
+    }
 
     private static string PrettyStatName(Enum_HeroAttributes a)
     {

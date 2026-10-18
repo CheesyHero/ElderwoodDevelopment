@@ -13,7 +13,9 @@ public class UI_NewITemButton : ComponentLoader
         if (obj is Item item)
         {
             SetText(item.itemName);
-            SetDescription(item.PrintToolTip(false));
+            SetDescription(item.PrintShortTooltip());
+            SetImageSprite(item.icon);
+            SetImageColor(item.color);
 
             if (backing) backing.color = BattleConstants.GetBadgeColor(item.rarity);
 

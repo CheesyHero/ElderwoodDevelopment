@@ -27,4 +27,9 @@ public class Item : ScriptableObject
         string hex = ColorUtility.ToHtmlStringRGB(color);
         return $"<color=#{hex}>{itemName} - {BattleConstants.WrapWithBadgeColor(rarity.ToString(), rarity)}</color>";
     }
+
+    public virtual string PrintShortTooltip()
+    {
+        return description;
+    }
 }
