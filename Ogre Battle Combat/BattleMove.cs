@@ -46,10 +46,16 @@ public class BattleMove : Skill
     public float criticalMult = 1.5f;
     public BattleEffect[] effects;
     public TriggerCondition[] triggers;
+
     [Header("Animation")]
     public string animationID = "attack";
     public Projectile projectile;
     public ParticleSystem impactFX;
+    public ParticleAnimator[] animations;
+
+    [Space(8)]
+    public BattleParticleController[] specialEffects;
+
     [Header("Battle Plan")]
     public FilterRule[] defaultRules;
 

@@ -17,6 +17,7 @@ public class BattleCombatant : MonoBehaviour
     public AnimationHandler animations;
     public int actionPoints;
     public int reactionPoints;
+
     [Header("Main")]
     public Hero hero = new(1);
     public Attributes modifiers = new(1);
@@ -27,9 +28,11 @@ public class BattleCombatant : MonoBehaviour
     public float settleTime = 0.5f;
     public float waitTime = 0.5f;
     public float travelOffset = 1.5f;
-    public ParticleSystem actionEffect;
-    public ParticleSystem reactionEffect;
-    public ParticleSystem specialEffect;
+
+    public ParticleSystem actionEffect; // Plays when a move starts
+    public ParticleSystem reactionEffect; // Plays when a reaction starts
+    public ParticleSystem specialEffect; // Plays when a specail move starts
+
     [Header("Statistics")]
     public int actionsUsed = 0;
     public int reactionsUsed = 0;
@@ -305,85 +308,210 @@ public class BattleCombatant : MonoBehaviour
     IEnumerator HitAllTargets(BattleEvent battleEvent)
     {
         Vector3 homePos = transform.position;
+
         battleEvent.move.UseCost(battleEvent.owner);
+        battleEvent.owner.AsOwner(
+            battleEvent,
+            Enum_BattleEvent_Type.onManaSpent,
+            battleEvent.value
+        );
 
-        battleEvent.owner.AsOwner(battleEvent, Enum_BattleEvent_Type.onManaSpent, battleEvent.value);
+        Transform target = battleEvent.targets[0].transform;
 
-        Transform t = battleEvent.targets[0].transform;
+        yield return new WaitForSeconds(0.3f); 
+        PlayMoveEffect(battleEvent); 
+        yield return new WaitForSeconds(0.5f);
 
-        yield return new WaitForSeconds(0.3f);
+        // Select attack type
+        if (battleEvent.move.projectile != null && !battleEvent.move.melee)
+            yield return StartCoroutine(ProjectileAttack(battleEvent)); // Fires a projectile
 
-        if (specialEffect != null && battleEvent.move.moveType == MoveType.special)
-        {
-            specialEffect.Play();
-            yield return new WaitForSeconds(0.5f);
-        }
-        else if(reactionEffect != null && battleEvent.move.moveType == MoveType.reaction)
-        {
-            reactionEffect.Play();
-            yield return new WaitForSeconds(0.5f);
-        }
+        else if (battleEvent.move.melee) // Move to and hit the target
+            yield return StartCoroutine(MeleeAttack(battleEvent, homePos, target)); 
 
-        if (battleEvent.move.projectile != null && battleEvent.move.melee == false)
-        {
-            for (int h = 0; h < battleEvent.move.hits; h++)
-            { // Core use for X hits
-
-                for (int i = 0; i < battleEvent.targets.Count; i++)
-                {
-                    BattleCombatant target = battleEvent.targets[i];
-                    PlayAnimation(battleEvent.move.animationID);
-
-                    var proj = Instantiate(battleEvent.move.projectile, transform.position, transform.rotation);
-                    proj.MoveToAndComplete(t.transform.position, () => { battleEvent.move.UseMove(battleEvent.source, target); });
-                    if (proj.duration > maxDuration)
-                        maxDuration = proj.duration;
-
-                    yield return new WaitForSeconds(settleTime / (float)battleEvent.targets.Count);
-                }
-            } // end projectile chain
-            yield return new WaitForSeconds(maxDuration);
-        } 
-        else if (battleEvent.move.melee)
-        {
-            PlayAnimation("leap");
-            LeanTween.move(gameObject, t.position + t.forward * travelOffset, walkTime).setEaseInOutSine();
-            yield return new WaitForSeconds(walkTime);
-
-            for (int h = 0; h < battleEvent.move.hits; h++)
-            { // Core use for X hits
-                PlayAnimation(battleEvent.move.animationID);
-
-                for (int i = 0; i < battleEvent.targets.Count; i++)
-                {
-                    BattleCombatant target = battleEvent.targets[i];
-                    battleEvent.move.UseMove(battleEvent.source, target);
-                    yield return new WaitForSeconds(settleTime / (float)battleEvent.targets.Count * 0.7f);
-                }
-            } // end hit chain
-
-            yield return new WaitForSeconds(settleTime * 0.5f);
-            LeanTween.move(gameObject, homePos, walkTime).setEaseInOutSine();
-        }
-        else
-        {
-            PlayAnimation(battleEvent.move.animationID);
-            yield return new WaitForSeconds(walkTime);
-
-            for (int h = 0; h < battleEvent.move.hits; h++)
-            { // Core use for X hits
-                foreach (var target in battleEvent.targets)
-                {
-                    battleEvent.move.UseMove(battleEvent.source, target);
-                    yield return new WaitForSeconds(settleTime / (float)battleEvent.targets.Count);
-                }
-            }
-        }
+        // Spellcasting without projectile
+        else yield return StartCoroutine(StandardAttack(battleEvent)); 
 
         yield return new WaitForSeconds(waitTime);
 
         routine = null;
-        AutoBattleManager.CompleteAction(battleEvent); 
+        AutoBattleManager.CompleteAction(battleEvent);
+    }
+
+    IEnumerator ProjectileAttack(BattleEvent battleEvent)
+    {
+        BattleMove move = battleEvent.move;
+        float maxProjectileDuration = 0f;
+        BattleCombatant firstTarget = battleEvent.targets[0];
+
+        // Start effects
+        bool started = false;
+        PlayParticleTiming(() => started = true, move, firstTarget, BattleParticleTiming.OnStart);
+        yield return new WaitUntil(() => started);
+
+        for (int h = 0; h < move.hits; h++)
+        {
+            foreach (BattleCombatant target in battleEvent.targets)
+            {
+                // Attack animation
+                PlayAnimation(move.animationID);
+
+                bool animated = false;
+                PlayParticleTiming(() => animated = true, move, target, BattleParticleTiming.OnAnimate);
+                yield return new WaitUntil(() => animated);
+
+                // Spawn projectile
+                var proj = Instantiate(
+                    move.projectile,
+                    transform.position,
+                    transform.rotation
+                );
+
+                proj.MoveToAndComplete(target.transform.position, () =>
+                {
+                    PlayParticleTiming(() =>
+                    {
+                        move.UseMove(battleEvent.source, target);
+                    }, move, target, BattleParticleTiming.OnHit);
+                });
+
+                if (proj.duration > maxProjectileDuration)
+                    maxProjectileDuration = proj.duration;
+
+                yield return new WaitForSeconds(
+                    settleTime / (float)battleEvent.targets.Count
+                );
+            }
+        }
+
+        // Wait for projectiles to finish
+        yield return new WaitForSeconds(maxProjectileDuration);
+
+        // Completion effects
+        bool completed = false;
+        PlayParticleTiming(() => completed = true, move, firstTarget, BattleParticleTiming.OnComplete);
+        yield return new WaitUntil(() => completed);
+    }
+
+    IEnumerator MeleeAttack(BattleEvent battleEvent, Vector3 homePos, Transform target)
+    {
+        BattleMove move = battleEvent.move;
+        BattleCombatant firstTarget = battleEvent.targets[0];
+
+        // Start effects
+        bool started = false;
+        PlayParticleTiming(() => started = true, move, firstTarget, BattleParticleTiming.OnStart);
+        yield return new WaitUntil(() => started);
+
+        // Leap toward target
+        PlayAnimation("leap");
+
+        LeanTween.move(
+            gameObject,
+            target.position + target.forward * travelOffset,
+            walkTime
+        ).setEaseInOutSine();
+
+        yield return new WaitForSeconds(walkTime);
+
+        // Attack animation effects
+        for (int h = 0; h < move.hits; h++)
+        {
+            PlayAnimation(move.animationID);
+
+            bool animated = false;
+            PlayParticleTiming(() => animated = true, move, firstTarget, BattleParticleTiming.OnAnimate);
+            yield return new WaitUntil(() => animated);
+
+            foreach (BattleCombatant combatant in battleEvent.targets)
+            {
+                bool hitComplete = false;
+
+                PlayParticleTiming(() =>
+                {
+                    move.UseMove(battleEvent.source, combatant);
+                    hitComplete = true;
+
+                }, move, combatant, BattleParticleTiming.OnHit);
+
+                yield return new WaitUntil(() => hitComplete);
+
+                yield return new WaitForSeconds(
+                    settleTime / (float)battleEvent.targets.Count * 0.7f
+                );
+            }
+        }
+
+        // Return home
+        yield return new WaitForSeconds(settleTime * 0.5f);
+
+        LeanTween.move(gameObject, homePos, walkTime)
+            .setEaseInOutSine();
+
+        yield return new WaitForSeconds(walkTime);
+
+        // Completion effects
+        bool completed = false;
+        PlayParticleTiming(() => completed = true, move, firstTarget, BattleParticleTiming.OnComplete);
+        yield return new WaitUntil(() => completed);
+    }
+
+    IEnumerator StandardAttack(BattleEvent battleEvent)
+    {
+        BattleMove move = battleEvent.move;
+        BattleCombatant firstTarget = battleEvent.targets[0];
+
+        // Start effects
+        bool started = false;
+        PlayParticleTiming(() => started = true, move, firstTarget, BattleParticleTiming.OnStart);
+        yield return new WaitUntil(() => started);
+
+        // Attack animation
+        PlayAnimation(move.animationID);
+
+        bool animated = false;
+        PlayParticleTiming(() => animated = true, move, firstTarget, BattleParticleTiming.OnAnimate);
+        yield return new WaitUntil(() => animated);
+
+        yield return new WaitForSeconds(walkTime);
+
+        // Apply hits
+        for (int h = 0; h < move.hits; h++)
+        {
+            foreach (BattleCombatant target in battleEvent.targets)
+            {
+                bool hitComplete = false;
+
+                PlayParticleTiming(() =>
+                {
+                    move.UseMove(battleEvent.source, target);
+                    hitComplete = true;
+
+                }, move, target, BattleParticleTiming.OnHit);
+
+                yield return new WaitUntil(() => hitComplete);
+
+                yield return new WaitForSeconds(
+                    settleTime / (float)battleEvent.targets.Count
+                );
+            }
+        }
+
+        // Completion effects
+        bool completed = false;
+        PlayParticleTiming(() => completed = true, move, firstTarget, BattleParticleTiming.OnComplete);
+        yield return new WaitUntil(() => completed);
+    } 
+    void PlayMoveEffect(BattleEvent battleEvent)
+    {
+        if (specialEffect != null && battleEvent.move.moveType == MoveType.special)
+        {
+            specialEffect.Play(); 
+        }
+        else if (reactionEffect != null && battleEvent.move.moveType == MoveType.reaction)
+        {
+            reactionEffect.Play(); 
+        }
     }
 
     // -------- Damage / healing publication --------
@@ -824,5 +952,52 @@ public class BattleCombatant : MonoBehaviour
                 list.Add(item);
 
         return list;
+    }
+
+    public void PlayParticleTiming(Action action, BattleMove move, BattleCombatant target, BattleParticleTiming timing)
+    {
+        var hits = GetParticles(move, timing);
+
+        // No particles? Execute the callback immediately.
+        if (hits == null || hits.Length == 0)
+        {
+            action?.Invoke();
+            return;
+        }
+
+        for (int i = 0; i < hits.Length; i++)
+        { 
+            var particle = Instantiate( hits[i], GetParticlePosition(target, hits[i]), Quaternion.identity );
+
+            // Only the first particle receives the callback.
+            particle.Play(i == 0 ? action : null);
+        }
+    }
+
+    public BattleParticleController[] GetParticles(BattleMove move, BattleParticleTiming timing)
+    {
+        if (move == null || move.specialEffects == null)
+            return Array.Empty<BattleParticleController>();
+
+        List<BattleParticleController> results = new();
+
+        foreach (BattleParticleController particle in move.specialEffects)
+        {
+            if (particle != null && particle.timing == timing)
+                results.Add(particle);
+        }
+
+        return results.ToArray();
+    }
+
+    public Vector3 GetParticlePosition(BattleCombatant target, BattleParticleController particle)
+    {
+        return particle.target switch
+        {
+            BattleParticleTarget.Source => transform.position,
+            BattleParticleTarget.Unit => target ? target.parent.transform.position : parent.transform.position,
+            BattleParticleTarget.Field => Vector3.zero,
+            _ => target ? target.transform.position : transform.position,
+        };
     }
 }
