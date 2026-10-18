@@ -10,6 +10,11 @@ public enum Enum_Selection_State
 [SelectionBase]
 public abstract class Selectable : MonoBehaviour
 {
+    public AudioClip highlightAudio;
+    public float highlightVolume = 0.5f;
+    public AudioClip selectionAudio;
+    public float selectionVolume = 1f;
+
     static readonly List<Selectable> all = new();
     public static Selectable[] AllSelectables { get { return all.ToArray(); } }
 
@@ -40,8 +45,9 @@ public abstract class Selectable : MonoBehaviour
         return -1;
     } 
     public virtual void OnSelection()
-    {
+    { 
         ChangeState(Enum_Selection_State.selected);
+        AudioInstancer.PlayAudioInstance(selectionAudio, selectionVolume);
     }
     public virtual void OnDeselect()
     {
@@ -50,7 +56,10 @@ public abstract class Selectable : MonoBehaviour
     public virtual void OnHighlightEnter()
     {
         if (state != Enum_Selection_State.selected)
+        {
             ChangeState(Enum_Selection_State.highlight);
+            AudioInstancer.PlayAudioInstance(highlightAudio, highlightVolume);
+        }
     }
     public virtual void OnHighlightExit()
     {

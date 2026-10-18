@@ -8,6 +8,9 @@ public class PlayerSelection : MonoBehaviour
     public static int Team => manager ? manager.teamIndex : 0;
 
     [SerializeField] private int teamIndex = 0;
+    [SerializeField] ParticleSystem pointFeedback;
+    [SerializeField] AudioClip selectionAudio;
+    [SerializeField] AudioClip cancelAudio;
 
     private static PlayerSelection manager;
 
@@ -102,8 +105,10 @@ public class PlayerSelection : MonoBehaviour
 
         switch (id)
         {
-            case "select":
+            case "select": 
                 TrySelection();
+                PlayPointFeedback();
+                PlaySelectAudioFeedback();
                 return;
 
             case "interact":
@@ -239,6 +244,8 @@ public class PlayerSelection : MonoBehaviour
 
     private void CancelSelection(bool print)
     {
+        PlayCancelAudioFeedback();
+
         ClearSelection(true);
         TileSpawnValidator.HideAll();
 
@@ -329,5 +336,27 @@ public class PlayerSelection : MonoBehaviour
             return false;
 
         return true;
+    }
+
+    public void PlaySelectAudioFeedback()
+    {
+        AudioInstancer.PlayAudioInstance(selectionAudio);
+    }
+    public void PlayCancelAudioFeedback()
+    {
+        AudioInstancer.PlayAudioInstance(cancelAudio);
+    }
+    public void PlayPointFeedback()
+    {
+        if (!pointFeedback) return;
+
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            pointFeedback.transform.position = hit.point;
+            pointFeedback.Stop();
+            pointFeedback.Play();
+        }
     }
 }

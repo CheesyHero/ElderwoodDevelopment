@@ -119,7 +119,7 @@ public class GameManager : Army
         Player.deck.Clear();
 
         Player.inventory.ClearInventory();
-        Player.inventory.SetMoney(200);
+        Player.inventory.SetMoney(600);
 
         Player.generationList = newArmy;
         Player.GenerateArmy();
