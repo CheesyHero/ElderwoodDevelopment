@@ -1,15 +1,22 @@
-using Unity.VisualScripting;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.UI;
 
 public class ZoneViewer : MonoBehaviour
 {
     public Zone LastZone { get; private set; }
-    [SerializeField]
-    protected CardViewer[] children;
+    public CardViewer prefab;
+    public Transform handle;
 
-    public void AssignLoadedChildren() => children = GetComponentsInChildren<CardViewer>();
+    [SerializeField]
+    protected List<CardViewer> children = new();
+
+    public void AssignLoadedChildren()
+    {
+        children = new List<CardViewer>(
+            GetComponentsInChildren<CardViewer>(true)
+        );
+    }
+
     private void Awake()
     {
         AssignLoadedChildren();
@@ -17,6 +24,8 @@ public class ZoneViewer : MonoBehaviour
         PlayerHandZone.OnCardPlayed += ReloadLastZone;
         CardHandler.OnDeckUpdated += ReloadLastZone;
         TurnManager.OnEventTrigger += ReloadLastZone;
+
+        if (handle == null) handle = transform;
     }
 
     private void OnDestroy()
@@ -33,26 +42,44 @@ public class ZoneViewer : MonoBehaviour
 
     public void LoadZone(Zone zone)
     {
-        // Views all cards in desired zone
         if (zone == null) return;
 
-        HideAllChildren();
+        Card[] cards = zone.Copy();
 
-        for (int i = 0; i < zone.Cards.Length; i++) 
-            LoadButtonAtIndex(i, zone.Cards[i]); 
+        // Create enough viewers for every card
+        while (children.Count < cards.Length)
+        {
+            CardViewer viewer = Instantiate(prefab, handle);
+            children.Add(viewer);
+        }
+
+        // Disable excess viewers, starting from the end
+        for (int i = children.Count - 1; i >= cards.Length; i--)
+        {
+            children[i].gameObject.SetActive(false);
+        }
+
+        // Populate all required viewers
+        for (int i = 0; i < cards.Length; i++)
+        {
+            children[i].gameObject.SetActive(true);
+            children[i].LoadCard(cards[i]);
+        }
 
         LastZone = zone;
     }
 
     public void LoadButtonAtIndex(int index, Card card)
     {
-        if (index < 0 || index > children.Length) return;
-         
+        if (index < 0 || index >= children.Count) return;
+
+        children[index].gameObject.SetActive(true);
         children[index].LoadCard(card);
     }
+
     public void HideAllChildren()
     {
-        foreach (var item in children)
-            item.Hide();
+        foreach (var child in children)
+            child.gameObject.SetActive(false);
     }
 }

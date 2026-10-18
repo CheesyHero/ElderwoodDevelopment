@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine.UI; 
 
 public class UI_QuickEquipItemTooltip : ComponentLoader
 {

@@ -34,4 +34,13 @@ public class DeckManager : CardHandler
             _ => hand,
         };
     }
+
+    public void ResetDeck()
+    {
+        hand.MoveAllTo(deck);
+        discard.MoveAllTo(deck);
+        exile.MoveAllTo(deck);
+
+        deck.Sort(0);
+    }
 }

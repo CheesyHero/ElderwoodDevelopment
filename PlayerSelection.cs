@@ -348,7 +348,7 @@ public class PlayerSelection : MonoBehaviour
     }
     public void PlayPointFeedback()
     {
-        if (!pointFeedback) return;
+        if (!pointFeedback || Camera.main == null) return;
 
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 

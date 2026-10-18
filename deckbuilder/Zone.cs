@@ -146,4 +146,22 @@ public class Zone
 
         cards.Add(newCard);
     }
+
+    public void Sort(int index)
+    {
+        switch (index)
+        {
+            default:
+                // Sort by name
+                break;
+
+            case 1:
+                // Sort by cost
+                break;
+
+            case 2:
+                // Sort by rarity
+                break; 
+        }
+    }
 }
