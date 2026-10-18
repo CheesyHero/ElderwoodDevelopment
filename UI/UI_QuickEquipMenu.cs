@@ -18,7 +18,9 @@ public class UI_QuickEquipMenu : MonoBehaviour
     {
         loader.LoadHeroes(InventoryManager.FindAllValidHeroes());
         currentHero.LoadHero(null);
-        tooltip.PassObject(InventoryManager.picked.item);
+
+        if (tooltip && InventoryManager.picked != null)
+            tooltip.PassObject(InventoryManager.picked.item);
     }
 
     public static void LoadPreview(Hero hero)

@@ -78,6 +78,7 @@ public class RewardsManager : MonoBehaviour
 
         ExperienceBonus();
         //GameManager.Inventory.GainMoney(grandTotalPayout); 
+        FlagManager.AddFlag("First Game", FlagType.permanant);
         SceneChanger.ChangeScenes(nextScene);
     }
 

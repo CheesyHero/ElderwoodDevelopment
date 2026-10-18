@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine; 
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : Army
 {
@@ -31,7 +32,13 @@ public class GameManager : Army
             if (runMap.seed == 0 && currentWorld)
                 SetNewWorld(currentWorld);
         } 
-    } 
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Backspace))
+            FlagManager.DebugCommand();
+    }
 
     public static EnemyProfile GetRandomOpponent()
     {
@@ -112,7 +119,7 @@ public class GameManager : Army
         Player.deck.Clear();
 
         Player.inventory.ClearInventory();
-        Player.inventory.SetMoney(100);
+        Player.inventory.SetMoney(200);
 
         Player.generationList = newArmy;
         Player.GenerateArmy();
@@ -121,6 +128,11 @@ public class GameManager : Army
 
         SetNewWorld(newWorld);
 
-        SceneChanger.ChangeScenes(2);
+        FlagManager.ClearTemporaryFlags();
+
+        if (!FlagManager.ContainsFlag("First Game")) 
+            SceneChanger.ChangeScenes(2); // Go to tutorial
+
+        else SceneChanger.ChangeScenes(1); // Go to tavern
     }
 }
