@@ -21,6 +21,7 @@ public class BattleUnit : MonoBehaviour
     public BattleCombatant combatantPrefab;
     public Unit_PlaceMinions minionRack;
     public Unit parent;
+    public SpriteRenderer banner;
 
     [SerializeField]
     BattleTile[][] tiles = new BattleTile[2][];
@@ -57,6 +58,7 @@ public class BattleUnit : MonoBehaviour
             if (tiles[x][y] == null)
                 tiles[x][y] = find;
         }
+         
     }
     private void Update()
     {
@@ -90,6 +92,8 @@ public class BattleUnit : MonoBehaviour
 
         startingHP = parent.GetTotalHealthPercent();
         startingKo = parent.GetTotalKOs();
+         
+        if (banner) banner.color = parent.team.teamColor;
     }
     protected BattleCombatant CreateCombatant(Hero hero, BattleTile tile)
     {

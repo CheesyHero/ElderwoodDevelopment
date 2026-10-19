@@ -1003,7 +1003,7 @@ public class BattleCombatant : MonoBehaviour
 
         for (int i = 0; i < hits.Length; i++)
         { 
-            var particle = Instantiate( hits[i], GetParticlePosition(target, hits[i]), Quaternion.identity );
+            var particle = Instantiate( hits[i], GetParticlePosition(target, hits[i]), Quaternion.identity);
 
             // Only the first particle receives the callback.
             particle.Play(i == 0 ? action : null);

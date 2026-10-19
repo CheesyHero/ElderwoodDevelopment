@@ -68,11 +68,12 @@ public class RewardsManager : MonoBehaviour
     public void Skip()
     {
         if (GameManager.CurrentEncounter.depth < 5)
-            GameManager.Inventory.AddItem(basicReward);
-
+        {
+            //GameManager.Inventory.AddItem(basicReward); 
+        }
         else
         {
-            GameManager.Inventory.AddItem(bossReward ? basicReward : bossReward);
+            //GameManager.Inventory.AddItem(bossReward ? basicReward : bossReward);
             GameManager.NextLevel();
         }
 
