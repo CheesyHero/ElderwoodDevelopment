@@ -20,6 +20,9 @@ public enum BattleParticleTarget
 
 public class BattleParticleController : MonoBehaviour
 {
+    public Vector3 offset;
+
+    [Space(8)]
     public float triggerTime = 0.25f;
     public float delay = 0f;
     [Space(8)]
@@ -35,6 +38,7 @@ public class BattleParticleController : MonoBehaviour
     private void Awake()
     {
         if (!particles) particles = GetComponent<ParticleSystem>();
+        transform.position += offset;
     }
 
     private void OnEnable()
@@ -72,9 +76,9 @@ public class BattleParticleController : MonoBehaviour
         Action callback = onComplete;
         onComplete = null;
 
-        callback?.Invoke();
+        callback?.Invoke(); 
 
-        Destroy(gameObject);
+        //Destroy(gameObject);
     } 
 
     public static bool HasActiveParticles()
