@@ -342,6 +342,10 @@ public class BattleCombatant : MonoBehaviour
     {
         BattleMove move = battleEvent.move;
         float maxProjectileDuration = 0f;
+
+        if (battleEvent.targets == null || battleEvent.targets.Count == 0)
+            yield break;
+
         BattleCombatant firstTarget = battleEvent.targets[0];
 
         // Start effects
@@ -351,8 +355,13 @@ public class BattleCombatant : MonoBehaviour
 
         for (int h = 0; h < move.hits; h++)
         {
-            foreach (BattleCombatant target in battleEvent.targets)
+            // Snapshot targets for this hit cycle
+            BattleCombatant[] targets = battleEvent.targets.ToArray();
+
+            foreach (BattleCombatant target in targets)
             {
+                if (!target) continue;
+
                 // Attack animation
                 PlayAnimation(move.animationID);
 
@@ -369,9 +378,13 @@ public class BattleCombatant : MonoBehaviour
 
                 proj.MoveToAndComplete(target.transform.position, () =>
                 {
+                    if (!target) return;
+
                     PlayParticleTiming(() =>
                     {
-                        move.UseMove(battleEvent.source, target);
+                        if (target)
+                            move.UseMove(battleEvent.source, target);
+
                     }, move, target, BattleParticleTiming.OnHit);
                 });
 
@@ -379,7 +392,7 @@ public class BattleCombatant : MonoBehaviour
                     maxProjectileDuration = proj.duration;
 
                 yield return new WaitForSeconds(
-                    settleTime / (float)battleEvent.targets.Count
+                    settleTime / (float)targets.Length
                 );
             }
         }
@@ -396,6 +409,10 @@ public class BattleCombatant : MonoBehaviour
     IEnumerator MeleeAttack(BattleEvent battleEvent, Vector3 homePos, Transform target)
     {
         BattleMove move = battleEvent.move;
+
+        if (battleEvent.targets == null || battleEvent.targets.Count == 0)
+            yield break;
+
         BattleCombatant firstTarget = battleEvent.targets[0];
 
         // Start effects
@@ -423,13 +440,20 @@ public class BattleCombatant : MonoBehaviour
             PlayParticleTiming(() => animated = true, move, firstTarget, BattleParticleTiming.OnAnimate);
             yield return new WaitUntil(() => animated);
 
-            foreach (BattleCombatant combatant in battleEvent.targets)
+            // Snapshot targets for this hit cycle
+            BattleCombatant[] targets = battleEvent.targets.ToArray();
+
+            foreach (BattleCombatant combatant in targets)
             {
+                if (!combatant) continue;
+
                 bool hitComplete = false;
 
                 PlayParticleTiming(() =>
                 {
-                    move.UseMove(battleEvent.source, combatant);
+                    if (combatant)
+                        move.UseMove(battleEvent.source, combatant);
+
                     hitComplete = true;
 
                 }, move, combatant, BattleParticleTiming.OnHit);
@@ -437,7 +461,7 @@ public class BattleCombatant : MonoBehaviour
                 yield return new WaitUntil(() => hitComplete);
 
                 yield return new WaitForSeconds(
-                    settleTime / (float)battleEvent.targets.Count * 0.7f
+                    settleTime / (float)targets.Length * 0.7f
                 );
             }
         }
@@ -459,6 +483,10 @@ public class BattleCombatant : MonoBehaviour
     IEnumerator StandardAttack(BattleEvent battleEvent)
     {
         BattleMove move = battleEvent.move;
+
+        if (battleEvent.targets == null || battleEvent.targets.Count == 0)
+            yield break;
+
         BattleCombatant firstTarget = battleEvent.targets[0];
 
         // Start effects
@@ -478,13 +506,20 @@ public class BattleCombatant : MonoBehaviour
         // Apply hits
         for (int h = 0; h < move.hits; h++)
         {
-            foreach (BattleCombatant target in battleEvent.targets)
+            // Snapshot targets for this hit cycle
+            BattleCombatant[] targets = battleEvent.targets.ToArray();
+
+            foreach (BattleCombatant target in targets)
             {
+                if (!target) continue;
+
                 bool hitComplete = false;
 
                 PlayParticleTiming(() =>
                 {
-                    move.UseMove(battleEvent.source, target);
+                    if (target)
+                        move.UseMove(battleEvent.source, target);
+
                     hitComplete = true;
 
                 }, move, target, BattleParticleTiming.OnHit);
@@ -492,7 +527,7 @@ public class BattleCombatant : MonoBehaviour
                 yield return new WaitUntil(() => hitComplete);
 
                 yield return new WaitForSeconds(
-                    settleTime / (float)battleEvent.targets.Count
+                    settleTime / (float)targets.Length
                 );
             }
         }
@@ -501,7 +536,8 @@ public class BattleCombatant : MonoBehaviour
         bool completed = false;
         PlayParticleTiming(() => completed = true, move, firstTarget, BattleParticleTiming.OnComplete);
         yield return new WaitUntil(() => completed);
-    } 
+    }
+
     void PlayMoveEffect(BattleEvent battleEvent)
     {
         if (specialEffect != null && battleEvent.move.moveType == MoveType.special)
