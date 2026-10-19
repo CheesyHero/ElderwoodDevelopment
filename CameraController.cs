@@ -1,8 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
-using Unity.VisualScripting;
+using System.Linq; 
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
+using UnityEngine.EventSystems;
 
 public class CameraController : MonoBehaviour
 {
@@ -19,6 +17,8 @@ public class CameraController : MonoBehaviour
     public Vector3 desiredPos = new();
     public float acceleration = 0.1f;
     public float tracking = 0.5f;
+    public float mouseEdgeRange = 0.95f;
+    public float maxMouseInput = 1f;
     public static CameraController Main { get; private set; }
     public float snapSpeed = 0.8f;
 
@@ -91,14 +91,38 @@ public class CameraController : MonoBehaviour
     protected void Translate()
     {
         if (walkSpeed <= 0) walkSpeed = 0.1f;
-        input = new(GlobalInputManager.Move.x, 0, GlobalInputManager.Move.y);
 
-        if (input.magnitude <= 0.1f) return;
+        // Prioritize keyboard/controller input
+        Vector2 globalInput = GlobalInputManager.Move;
 
-        lastInputTime = sticky; 
-        momentum = Vector3.SmoothDamp(momentum, input, ref v2, acceleration);
+        if (globalInput.sqrMagnitude > 0.01f)
+        {
+            input = new Vector3(globalInput.x, 0, globalInput.y);
+        }
+        else
+        {
+            input = GetMouseToScreenInput();
+        }
+
+        input = Vector3.ClampMagnitude(input, 1f);
+
+        // Smooth acceleration and deceleration
+        momentum = Vector3.SmoothDamp(
+            momentum,
+            input,
+            ref v2,
+            acceleration
+        );
+
+        // Ignore movement when nearly stopped
+        if (momentum.sqrMagnitude < 0.0001f && input.sqrMagnitude < 0.0001f)
+            return;
+
+        // Block automatic camera movement during manual input
+        if (input.sqrMagnitude > 0.01f)
+            lastInputTime = sticky;
+
         desiredPos += Time.deltaTime * walkSpeed * momentum;
-         
     }
     public void BoundingBox()
     { 
@@ -150,4 +174,39 @@ public class CameraController : MonoBehaviour
         return find;
     }
 
+    private Vector3 GetMouseToScreenInput()
+    {
+        // Ignore input when game window is unfocused
+        if (!Application.isFocused)
+            return Vector3.zero;
+
+        // Ignore input when mouse is over UI
+        if (EventSystem.current != null &&
+            EventSystem.current.IsPointerOverGameObject())
+            return Vector3.zero;
+
+        Vector2 mousePos = Input.mousePosition;
+
+        // Ignore input outside the game window
+        if (mousePos.x < 0 || mousePos.x >= Screen.width ||
+            mousePos.y < 0 || mousePos.y >= Screen.height)
+            return Vector3.zero;
+
+        Vector3 output = Vector3.zero;
+
+        float x = (mousePos.x / Screen.width) * 2f - 1f;
+        float y = (mousePos.y / Screen.height) * 2f - 1f;
+
+        if (x <= -mouseEdgeRange)
+            output.x = -Mathf.Lerp(0.1f, maxMouseInput, Mathf.InverseLerp(mouseEdgeRange, 1f, -x));
+        else if (x >= mouseEdgeRange)
+            output.x = Mathf.Lerp(0.1f, maxMouseInput, Mathf.InverseLerp(mouseEdgeRange, 1f, x));
+
+        if (y <= -mouseEdgeRange)
+            output.z = -Mathf.Lerp(0.1f, maxMouseInput, Mathf.InverseLerp(mouseEdgeRange, 1f, -y));
+        else if (y >= mouseEdgeRange)
+            output.z = Mathf.Lerp(0.1f, maxMouseInput, Mathf.InverseLerp(mouseEdgeRange, 1f, y));
+
+        return output;
+    }
 }

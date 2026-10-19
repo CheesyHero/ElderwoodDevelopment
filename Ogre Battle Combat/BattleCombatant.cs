@@ -32,6 +32,7 @@ public class BattleCombatant : MonoBehaviour
     public ParticleSystem actionEffect; // Plays when a move starts
     public ParticleSystem reactionEffect; // Plays when a reaction starts
     public ParticleSystem specialEffect; // Plays when a specail move starts
+    public Transform particlePoint;
 
     [Header("Statistics")]
     public int actionsUsed = 0;
@@ -172,6 +173,9 @@ public class BattleCombatant : MonoBehaviour
     {
         if (artRenderer)
             artRenderer.flipX = flip;
+
+        if (particlePoint)
+            particlePoint.eulerAngles = flip ? Vector3.zero : new Vector3(0f, 180f, 0f);
     }
     private Coroutine routine;
     private void InitateMove(BattleEvent battleEvent)
@@ -303,8 +307,7 @@ public class BattleCombatant : MonoBehaviour
 
         return false; // success
     }
-
-    static float maxDuration = 0;
+     
     IEnumerator HitAllTargets(BattleEvent battleEvent)
     {
         Vector3 homePos = transform.position;
@@ -1003,7 +1006,8 @@ public class BattleCombatant : MonoBehaviour
 
         for (int i = 0; i < hits.Length; i++)
         { 
-            var particle = Instantiate( hits[i], GetParticlePosition(target, hits[i]), Quaternion.identity);
+            var particle = Instantiate( hits[i], GetParticlePosition(target, hits[i]), 
+                particlePoint ? particlePoint.rotation : Quaternion.identity);
 
             // Only the first particle receives the callback.
             particle.Play(i == 0 ? action : null);
