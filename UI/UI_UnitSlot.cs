@@ -17,7 +17,10 @@ public class UI_UnitSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     protected Image leaderDisplay; 
 
     public Button[] subButtons;
-     
+
+    [SerializeField] private Material teamColorMaterial;
+    private Material heroMaterial;
+
     public static UnityAction<Hero> OnHoverPreviewEnter;
     public static UnityAction OnHoverPreviewExit;
 
@@ -29,6 +32,12 @@ public class UI_UnitSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
         UI_FullArmyDisplay.OnUpdateHero += Reload;
         UI_FullArmyDisplay.OnUpdateUnit += Reload;
+
+        if (heroSprite && teamColorMaterial)
+        {
+            heroMaterial = new Material(teamColorMaterial);
+            heroSprite.material = heroMaterial;
+        } 
     }
     private void OnDestroy()
     {
@@ -37,6 +46,9 @@ public class UI_UnitSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
         UI_FullArmyDisplay.OnUpdateHero -= Reload;
         UI_FullArmyDisplay.OnUpdateUnit -= Reload;
+
+        if (heroMaterial)
+            Destroy(heroMaterial);
     }
 
     public void Reload()
@@ -60,6 +72,19 @@ public class UI_UnitSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
         heroSprite.enabled = hero != null; 
         heroSprite.sprite = hero?.heroClass.actorImage;
+        if (heroMaterial)
+        {
+            heroMaterial.SetTexture("_MaskTex",
+                hero?.heroClass.colorMask != null
+                    ? hero.heroClass.colorMask
+                    : Texture2D.blackTexture);
+
+            heroMaterial.SetColor("_TeamColor",
+                hero?.team != null
+                    ? hero.team.teamColor
+                    : Color.white);
+        }
+
         lastInput = hero;
 
         foreach (var item in children)

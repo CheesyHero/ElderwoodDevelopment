@@ -72,19 +72,15 @@ public class Health
         if (e == null || e.value <= 0f) return;
         if (shield_current <= 0f) return;
 
-        float damage = e.value;
-        float defense = Mathf.Max(0f, GetShieldMitigationStat(e)); // your shield/armor stat
-
-        // Reduce by defense, but defense cannot reduce more than 50% of the original damage.
-        float mitigatedDamage = damage - Mathf.Min(defense, damage * 0.5f);
-
-        float absorbed = Mathf.Min(shield_current, mitigatedDamage);
+        float absorbed = Mathf.Min(shield_current, e.value);
         shield_current -= absorbed;
 
-        // Remainder passes through to health as positive damage
-        e.value = mitigatedDamage - absorbed;
+        // Remaining damage passes through to health
+        e.value -= absorbed;
 
-        mana_current += absorbed / shield_max * 50f;
+        // Generate mana based on shield absorbed
+        if (shield_max > 0f)
+            mana_current += absorbed / shield_max * 75f;
 
         Clamp();
     }

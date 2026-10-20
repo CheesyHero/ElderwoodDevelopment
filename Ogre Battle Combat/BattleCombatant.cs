@@ -160,13 +160,27 @@ public class BattleCombatant : MonoBehaviour
         CollectMods();
     }
     public void FindArt(bool flip = true)
-    {
+    {  
         artRenderer = GetComponentInChildren<SpriteRenderer>();
-        if (artRenderer)
+        if (!artRenderer) return;
+
+        FlipArt(flip);
+
+        if (hero.heroClass && hero.heroClass.actorImage)
         {
-            FlipArt(flip);
-            if (hero.heroClass && hero.heroClass.actorImage)
-                artRenderer.sprite = hero.heroClass.actorImage;
+            artRenderer.sprite = hero.heroClass.actorImage;
+
+            MaterialPropertyBlock properties = new();
+            artRenderer.GetPropertyBlock(properties);
+
+            properties.SetTexture("_MaskTex",
+                hero.heroClass.colorMask != null
+                    ? hero.heroClass.colorMask
+                    : Texture2D.blackTexture);
+
+            properties.SetColor("_TeamColor", team.teamColor); 
+
+            artRenderer.SetPropertyBlock(properties);
         }
     }
     public void FlipArt(bool flip = true)

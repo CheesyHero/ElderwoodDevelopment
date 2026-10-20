@@ -20,6 +20,7 @@ public class HeroClass : ScriptableObject
     [TextArea(1, 8)]
     public string description;
     public Sprite actorImage;
+    public Texture2D colorMask;
     [Range(1, 5)]
     [Tooltip("How many placements in a Unit does this hero occupy?")]
     public int size = 1;
