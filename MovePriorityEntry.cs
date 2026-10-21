@@ -9,10 +9,14 @@ public class MovePriorityEntry
     public BattleMove desiredMove;
     public List<FilterRule> filters = new();
 
-    public MovePriorityEntry(BattleMove move)
+    public MovePriorityEntry(BattleMove move, bool recommended)
     {
         desiredMove = move;
-        filters = new(move.defaultRules);
+
+        if (!recommended && filters.Count == 0)
+            filters = new(move.defaultRules);
+
+        else filters = new(move.recommendedRules);
     }
 
     public void TickPriority(int direction)

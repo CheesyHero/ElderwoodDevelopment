@@ -33,7 +33,9 @@ public class ArmyGenerator : ScriptableObject
     }
 
     public Unit[] GetRandomArmy(int size)
-    {
+    { 
+        //Debug.LogWarning($"DEBUGGING : {name} Generator starting from {possibleLineUps.Length} possible units...");
+
         List<Unit> offers = new();
         List<Unit> picks = new();
 
@@ -46,6 +48,9 @@ public class ArmyGenerator : ScriptableObject
             picks.Add(offers[pull]);
             offers.RemoveAt(pull);
         }
+
+        if (bosses.Length > 0)
+            picks[0] = GetRandomBoss();
 
         return picks.ToArray();
     }
@@ -67,7 +72,7 @@ public class ArmyGenerator : ScriptableObject
             equipment.armor = h.heroClass.startingEquipment.armor;
             equipment.accessoryA = h.heroClass.startingEquipment.accessoryA;
             equipment.accessoryB = h.heroClass.startingEquipment.accessoryB;
-            h.plan.GenerateSkillFresh(h);
+            h.plan.GenerateSkillFresh(h, false);
             list.Add(h);
 
             h.characterName = h.heroClass.GenerateRandomName();

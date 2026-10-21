@@ -58,6 +58,7 @@ public class BattleMove : Skill
 
     [Header("Battle Plan")]
     public FilterRule[] defaultRules;
+    public FilterRule[] recommendedRules;
 
     public override string PrintTooltip()
     {

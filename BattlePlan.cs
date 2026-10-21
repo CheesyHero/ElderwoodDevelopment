@@ -13,7 +13,7 @@ public class BattlePlan
 
         // If empty, build fresh.
         if (skills == null || skills.Count == 0)
-            GenerateSkillFresh(hero);
+            GenerateSkillFresh(hero, false);
 
         // Always ensure plan contains all known moves (including reactions).
         AddMissingTech(hero);
@@ -32,17 +32,17 @@ public class BattlePlan
             skills[index].desiredMove = move;
             skills[index].filters = new();
         }
-        else skills.Add(new(move));
+        else skills.Add(new(move, false));
 
         SortByPriority();
     }
-    public void GenerateSkillFresh(Hero load)
+    public void GenerateSkillFresh(Hero load, bool recommendedSkills)
     { 
         skills = new();
         if (load == null) return; 
 
         foreach(var item in load.KnownSkills()) 
-            skills.Add(new(item));
+            skills.Add(new(item, recommendedSkills));
 
         //Debug.Log($"{load} has generated a new list of skills. Preparing to sort...");
 
@@ -55,7 +55,7 @@ public class BattlePlan
         skills ??= new List<MovePriorityEntry>();
 
         if (skills.Count == 0)
-            GenerateSkillFresh(hero);
+            GenerateSkillFresh(hero, false);
         else
         {
             // Key change: do NOT return early; keep plan in sync.
@@ -76,7 +76,7 @@ public class BattlePlan
             BattleMove planned = skills[i].desiredMove;
             if (planned == null || !known.Contains(planned))
             {
-                GenerateSkillFresh(hero);
+                GenerateSkillFresh(hero, false);
                 return;
             }
         } 
@@ -91,7 +91,7 @@ public class BattlePlan
                 .Any(s => s.desiredMove == move);
 
             if (!existsInPlan) 
-                hero.plan.skills.Add(new(move)); 
+                hero.plan.skills.Add(new(move, false)); 
         } 
     } 
 
@@ -211,7 +211,7 @@ public class BattlePlan
         {
             if (entry == null) continue;
 
-            MovePriorityEntry e = new(entry.desiredMove)
+            MovePriorityEntry e = new(entry.desiredMove, false)
             {
                 priority = entry.priority,
                 filters = entry.filters != null

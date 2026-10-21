@@ -61,20 +61,20 @@ public class Army : MonoBehaviour
 
     public void GenerateArmy()
     {
+        //Debug.LogWarning($"DEBUGGING : {name} is generating an army...");
+
         if (generationList == null && playerID == "AI") generationList = GameManager.Player.lastNode.main; 
         if (generationList == null) return; // 
 
         int size = firstTimeArmySize; 
         if (playerID == "AI") size += GameManager.CurrentLevel * 2;
 
+        //Debug.LogWarning($"DEBUGGING : {name} is attempting to load from {generationList}...");
         units = new(generationList.GetRandomArmy(size));
         team = generationList.GetTeam();
 
         if (playerID == "AI" && GameManager.CurrentEncounter.depth <= 2)
-            return; // We don't want enemies early in runs to have strong bosses
-
-        var boss = generationList.GetRandomBoss(); 
-        if (boss != null) units[0] = boss;
+            return; // We don't want enemies early in runs to have strong bosses 
     }
     protected virtual void Awake()
     {
