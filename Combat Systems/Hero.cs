@@ -137,9 +137,15 @@ public class Hero
     {
         return 1 + level * level;
     }
-    public void RollName()
+    public void RollName(bool force = false)
     {
-        if (characterName == null || characterName.Length == 0 || characterName[0] == '_')
+        if (force) characterName = "";
+
+        if (characterName == null || 
+            characterName.Length == 0 || 
+            characterName[0] == '_' || 
+            characterName =="New Hero")
+
             characterName = heroClass.GenerateRandomName();
     }
     public bool CanUseEquipment(Equipment item)

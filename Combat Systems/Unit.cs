@@ -26,13 +26,23 @@ public class Unit
         teamEffects.Add(condition);
     }
 
-
     public Unit()
     {
         placements = new int[2][];
         for (int i = 0; i < placements.Length; i++)
         { placements[i] = new int[] { -1, -1, -1 }; }
     }
+    public Unit(Team team = null)
+    {
+        if (team == null) team = new();
+
+        placements = new int[2][];
+        for (int i = 0; i < placements.Length; i++)
+        { placements[i] = new int[] { -1, -1, -1 }; }
+
+        this.team = team;
+    }
+
     public Hero Leader()
     {
         if (leaderIndex >= heroes.Count || leaderIndex < 0)
@@ -408,7 +418,7 @@ public class Unit
         foreach (var item in heroes)
             item.GainExperience(Mathf.CeilToInt(exp)); 
     }
-    public Unit Copy()
+    public Unit Copy(Team team)
     {
         Unit copy = new()
         {
