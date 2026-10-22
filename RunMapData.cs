@@ -136,27 +136,60 @@ public static class RunMapGenerator
 
         return map;
     }
-
-    private static int AddNode(RunMapData map, ref int nextId, int depth, float x, float y, MapNodeType type)
+    private static int AddNode(
+    RunMapData map,
+    ref int nextId,
+    int depth,
+    float x,
+    float y,
+    MapNodeType type)
     {
         int id = nextId++;
+
         World world = LevelSelectMap.World;
-        EnemyProfile profile = depth <= 0 && world.GetTutorial() ? world.GetTutorial() : world.GetRandomProfile();
-        ArmyGenerator army = profile.GetLevelEncounter(GameManager.CurrentLevel); 
+
+        if (world == null)
+        {
+            Debug.LogError("RunMapGenerator: No World assigned.");
+            return id;
+        }
+
+        ArmyGenerator army =
+            depth <= 0 && world.GetTutorial()
+                ? world.GetTutorial()
+                : world.GetRandomProfile(depth);
+
+        if (army == null)
+        {
+            Debug.LogError(
+                $"RunMapGenerator: No ArmyGenerator found for map depth {depth}."
+            );
+
+            return id;
+        }
+
         var next = new MapNodeData
         {
             id = id,
             depth = depth,
-            position = new(x, y),
+            position = new Vector2(x, y),
             type = type,
-            main = army, 
+            main = army,
             completed = depth == 0,
-            sceneIndex = LevelSelectMap.World.GetRandomSceneIndex(),
+            sceneIndex = world.GetRandomSceneIndex(),
+
             storeInventory = army.GetStore(),
-            cardMarket = army.rewards.Get10StoreCommands(),
-            recruits = army.rewards.Get3Recruits(),
-        }; 
-        if(next.depth == 0 && GameManager.CurrentLevel == 0)
+
+            cardMarket = army.rewards != null
+                ? army.rewards.Get10StoreCommands()
+                : null,
+
+            recruits = army.rewards != null
+                ? army.rewards.Get3Recruits()
+                : null
+        };
+
+        if (next.depth == 0 && GameManager.CurrentLevel == 0)
             GameManager.LoadNewEncounter(next);
 
         map.nodes.Add(next);

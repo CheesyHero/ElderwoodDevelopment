@@ -8,6 +8,7 @@ public class ArmyGenerator : ScriptableObject
     public GameRewards rewards;
     public Team team;
     public Team mirror;
+    public int minLevel, maxLevel;
     public UnitGenerator[] possibleLineUps;
     public UnitGenerator[] bosses;
 
@@ -36,21 +37,19 @@ public class ArmyGenerator : ScriptableObject
     { 
         //Debug.LogWarning($"DEBUGGING : {name} Generator starting from {possibleLineUps.Length} possible units...");
 
-        List<Unit> offers = new();
-        List<Unit> picks = new();
-
-        foreach(var item in possibleLineUps)
-            offers.Add(item.Copy(team));
+        List<UnitGenerator> offers = new(possibleLineUps);
+        List<Unit> picks = new(); 
 
         while(offers.Count > 0 && picks.Count < size)
         {
-            int pull = Random.Range(0, offers.Count);
-            picks.Add(offers[pull]);
+            int pull = Random.Range(0, offers.Count); 
+
+            picks.Add(ScaleUnit(offers[pull].Copy(team))); 
             offers.RemoveAt(pull);
         }
 
         if (bosses.Length > 0 && picks.Count > 0)
-            picks[0] = GetRandomBoss();
+            picks[0] = ScaleUnit(GetRandomBoss(), true);
 
         return picks.ToArray();
     }
@@ -94,5 +93,41 @@ public class ArmyGenerator : ScriptableObject
     internal List<Item> GetStore()
     {
         return new List<Item>(rewards.Get10StoreItems());
+    }
+
+
+
+    public Unit ScaleUnit(Unit input, bool boss = false)
+    {
+        if (input == null || input.heroes.Count == 0)
+            return input;
+
+        int halfCurrent = Mathf.FloorToInt(GameManager.Distance / 2f);
+
+        input.Leader().level =
+            Mathf.Clamp(
+                1 + halfCurrent
+                + GameManager.CurrentLevel
+                + GameManager.Player.HighestLevel(0.33f)
+                + Random.Range(minLevel, maxLevel),
+                1, 20
+            );
+
+        for (int i = 0; i < input.heroes.Count; i++)
+        {
+            if (i == input.leaderIndex) continue;
+
+            input.heroes[i].level =
+                (boss ? GameManager.Player.currentWorld.difficulty : 0)
+                + Mathf.Clamp(
+                    halfCurrent
+                    + GameManager.CurrentLevel
+                    + GameManager.Player.HighestLevel(0.25f)
+                    + Random.Range(minLevel, maxLevel),
+                    1, 20
+                );
+        }
+
+        return input;
     }
 }

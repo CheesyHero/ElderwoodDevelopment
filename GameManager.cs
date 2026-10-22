@@ -40,12 +40,13 @@ public class GameManager : Army
             FlagManager.DebugCommand();
     }
 
-    public static EnemyProfile GetRandomOpponent()
+    public static ArmyGenerator GetRandomOpponent()
     {
         if (Player.currentWorld == null) return null;
 
-        else return Player.currentWorld.GetRandomProfile();
-    } 
+        else return Player.currentWorld.GetRandomProfile(CurrentLevel);
+    }
+
     public static void NextLevel()
     {
         if(Player.currentWorld == null) 

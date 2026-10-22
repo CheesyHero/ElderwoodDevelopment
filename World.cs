@@ -5,39 +5,69 @@ using UnityEngine;
 public class World : ScriptableObject
 {
     public string worldName = "new world";
+
     [TextArea(2, 8)]
     public string worldDescription = "hello world!";
+
     [Range(1, 5)]
     public int difficulty = 1;
-    public EnemyProfile tutorial;
-    public EnemyProfile[] availableProfiles;
-    public EnemyProfile[] bosses;
-    public int[] mapIndexes;
+
+    [Header("Army Generators")]
+    public ArmyGenerator tutorial;
+    public ArmyGenerator[] earlyGameProfiles;
+    public ArmyGenerator[] lateGameProfiles;
+    public ArmyGenerator[] bosses;
 
     [Header("World Info")]
     public World nextWorld;
 
-    [Header("Map Generation")] 
+    [Header("Map Generation")]
+    public int[] mapIndexes;
     public RunMapGenerator.Settings mapSettings = new();
 
-    public EnemyProfile GetTutorial() => tutorial;
+    public ArmyGenerator GetTutorial()
+    {
+        return tutorial;
+    }
 
-    public EnemyProfile GetRandomProfile()
+    public ArmyGenerator GetRandomProfile(int mapIndex)
     {
-        if(availableProfiles.Length == 0) return null;
-        else return availableProfiles[Random.Range(0, availableProfiles.Length)];
+        ArmyGenerator[] profiles;
+
+        if (mapIndex <= 2)
+        {
+            profiles = earlyGameProfiles;
+        }
+        else if (mapIndex <= 4)
+        {
+            profiles = lateGameProfiles;
+        }
+        else
+        {
+            profiles = bosses;
+        }
+
+        if (profiles == null || profiles.Length == 0)
+            return null;
+
+        return profiles[Random.Range(0, profiles.Length)];
     }
-    public EnemyProfile GetRandomBoss()
+
+    public ArmyGenerator GetRandomBoss()
     {
-        if (bosses.Length == 0) return null;
-        else return bosses[Random.Range(0, bosses.Length)];
+        if (bosses == null || bosses.Length == 0)
+            return null;
+
+        return bosses[Random.Range(0, bosses.Length)];
     }
-    private List<int> shufflePool; 
+
+    private List<int> shufflePool;
+
     public int GetRandomSceneIndex()
     {
         if (mapIndexes == null || mapIndexes.Length == 0)
             return 1;
-         
+
         if (shufflePool == null || shufflePool.Count == 0)
         {
             shufflePool = new List<int>(mapIndexes);
@@ -46,15 +76,18 @@ public class World : ScriptableObject
 
         int value = shufflePool[^1];
         shufflePool.RemoveAt(shufflePool.Count - 1);
+
         return value;
-    } 
+    }
+
     private void Shuffle(List<int> list)
     {
         for (int i = 0; i < list.Count; i++)
         {
             int swapIndex = Random.Range(i, list.Count);
-            (list[i], list[swapIndex]) = (list[swapIndex], list[i]);
+
+            (list[i], list[swapIndex]) =
+                (list[swapIndex], list[i]);
         }
     }
-
 }
