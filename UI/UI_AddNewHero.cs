@@ -25,7 +25,8 @@ public class UI_AddNewHero : ComponentLoader
     {
         if (hero == null) return;
 
-        hero.AddStartingWeapons(false);
+        hero.RollName();
+        hero.AddStartingWeapons();
         hero.team = GameManager.Player.team;
 
         SetText(hero.heroClass.className);

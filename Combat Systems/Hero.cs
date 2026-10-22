@@ -56,7 +56,9 @@ public class Hero
         if (heroClass == null) // failsafe
             heroClass = HeroClass.GetClass(0);
 
-        AddStartingWeapons(characterName.Length > 0 && characterName[0] != '_');  
+        RollName();
+        AddStartingWeapons();  
+
         SetAttributeLevels();
         SetHealth();
         plan.Initialize(this);
@@ -78,13 +80,8 @@ public class Hero
 
         //Debug.Log($"{this} has been refreshed {p * 100}%");
     }
-    public void AddStartingWeapons(bool nodouplicate)
-    {
-        if (nodouplicate == true)
-            return; // Character has not been created the first time
-
-        else RollName();
-
+    public void AddStartingWeapons()
+    { 
         //Debug.Log($"{ToString()} : Adding starting items..."); 
         if (!equipment.weapon) equipment.weapon = heroClass.startingEquipment.weapon;
         if (!equipment.armor) equipment.armor = heroClass.startingEquipment.armor;

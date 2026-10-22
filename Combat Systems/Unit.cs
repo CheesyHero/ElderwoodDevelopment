@@ -265,23 +265,40 @@ public class Unit
         Debug.Log($"Attempting to swap units between {this} @ ({ourHero}) and {otherUnit} @ ({otherPull})");
         ExchangeWithOtherUnit(ourPos.x, ourPos.y, otherUnit, otherPos.x, otherPos.y); 
     }
-    public void ExchangeWithOtherUnit(int x1, int y1, Unit otherUnit, int x2, int y2)
+    public void ExchangeWithOtherUnit(
+        int x1, int y1,
+        Unit otherUnit,
+        int x2, int y2)
     {
-        Debug.Log($"Attempting to swap units between {this} @ ({x1},{y1}) and {otherUnit} @ ({x2},{y2})");
+        if (otherUnit == null) return;
 
-        int o = leaderIndex;
-        bool sameUnit = otherUnit == this;
+        if (otherUnit == this)
+        {
+            SwapIndexes(x1, y1, x2, y2);
+            return;
+        }
 
-        Hero ourHero = ExtractHeroFromIndex(x1, y1, sameUnit);
-        Hero otherPull = otherUnit.ExtractHeroFromIndex(x2, y2, sameUnit);
+        Hero ourHero = GetFromPlacement(x1, y1);
+        Hero otherHero = otherUnit.GetFromPlacement(x2, y2);
 
-        PlaceHero(otherPull, x1, y1);
+        if (ourHero == null || otherHero == null)
+            return;
+
+        // Remove both heroes before adding replacements
+        RemoveHero(ourHero);
+        otherUnit.RemoveHero(otherHero);
+
+        // Place exchanged heroes
+        PlaceHero(otherHero, x1, y1);
         otherUnit.PlaceHero(ourHero, x2, y2);
 
-        if (sameUnit) leaderIndex = 0;
-
+        // Update placement data
         UpdateDebugTestSettingsFromPlacements();
+        otherUnit.UpdateDebugTestSettingsFromPlacements();
+
+        Debug.Log($"Exchanged {ourHero} with {otherHero}");
     }
+
     public void LoadDebugTest()
     {
         if (debugTestSettings.Length != 2) return;

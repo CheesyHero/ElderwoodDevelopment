@@ -13,6 +13,8 @@ public class HeroGenerator : ScriptableObject
         copy.RollName(true);
         copy.team = team;
 
+        // copy.Initialize();
+
         if (useRecommendedSkills)
             copy.plan.GenerateSkillFresh(copy, true);
 

@@ -49,7 +49,7 @@ public class ArmyGenerator : ScriptableObject
             offers.RemoveAt(pull);
         }
 
-        if (bosses.Length > 0)
+        if (bosses.Length > 0 && picks.Count > 0)
             picks[0] = GetRandomBoss();
 
         return picks.ToArray();
