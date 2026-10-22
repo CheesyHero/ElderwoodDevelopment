@@ -178,7 +178,9 @@ public class BattleCombatant : MonoBehaviour
                     ? hero.heroClass.colorMask
                     : Texture2D.blackTexture);
 
-            properties.SetColor("_TeamColor", team.teamColor); 
+            properties.SetColor("_TeamColor", team.teamColor);
+            properties.SetColor("_ArmorColor", hero.equipment.armor.color);
+            properties.SetColor("_WeaponColor", hero.equipment.weapon.color);
 
             artRenderer.SetPropertyBlock(properties);
         }

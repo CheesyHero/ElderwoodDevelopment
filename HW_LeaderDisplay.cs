@@ -30,6 +30,8 @@ public class HW_LeaderDisplay : MonoBehaviour
                 : Texture2D.blackTexture);
 
         properties.SetColor("_TeamColor", parent.Parent.team.teamColor);
+        properties.SetColor("_ArmorColor", hero.equipment.armor.color);
+        properties.SetColor("_WeaponColor", hero.equipment.weapon.color);
 
         sprite.SetPropertyBlock(properties);
     }

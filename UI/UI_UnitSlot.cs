@@ -71,18 +71,28 @@ public class UI_UnitSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         if (!heroSprite || children == null) return;
 
         heroSprite.enabled = hero != null; 
-        heroSprite.sprite = hero?.heroClass.actorImage;
-        if (heroMaterial)
+        heroSprite.sprite = hero?.heroClass.actorImage; if (heroMaterial)
         {
-            heroMaterial.SetTexture("_MaskTex",
-                hero?.heroClass.colorMask != null
-                    ? hero.heroClass.colorMask
-                    : Texture2D.blackTexture);
+            Texture2D mask = hero?.heroClass?.colorMask != null
+                ? hero.heroClass.colorMask
+                : Texture2D.blackTexture;
 
-            heroMaterial.SetColor("_TeamColor",
-                hero?.team != null
-                    ? hero.team.teamColor
-                    : Color.white);
+            Color teamColor = hero?.team != null
+                ? hero.team.teamColor
+                : Color.white;
+
+            Color armorColor = hero?.equipment?.armor != null
+                ? hero.equipment.armor.color
+                : Color.white;
+
+            Color weaponColor = hero?.equipment?.weapon != null
+                ? hero.equipment.weapon.color
+                : Color.white;
+
+            heroMaterial.SetTexture("_MaskTex", mask);
+            heroMaterial.SetColor("_TeamColor", teamColor);
+            heroMaterial.SetColor("_ArmorColor", armorColor);
+            heroMaterial.SetColor("_WeaponColor", weaponColor);
         }
 
         lastInput = hero;

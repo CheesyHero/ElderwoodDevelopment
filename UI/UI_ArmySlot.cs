@@ -14,6 +14,8 @@ public class UI_ArmySlot : UI_UnitSlot, IPointerEnterHandler, IPointerExitHandle
 
     protected override void Awake()
     {
+        base.Awake();
+
         UI_FullArmyDisplay.OnUpdateHero += GoRefresh;
         UI_FullArmyDisplay.OnUpdateUnit += GoRefresh;
 
