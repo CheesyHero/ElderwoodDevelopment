@@ -227,7 +227,4 @@ public class BattlePlan
 
         return copy;
     }
-}
-
-
-
+} 

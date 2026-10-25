@@ -34,6 +34,8 @@ public class BattleMove : Skill
     public bool canTargetDefeated = false;
     public bool canUseWhileDefeated = false;
     public bool limited = false; // only one allied hero can have a move of this name on the stack
+    [Range(0, 3)]
+    public int chargeTurns = 0;
 
     [Header("Values")]
     [Range(1, 5)]
@@ -185,22 +187,53 @@ public class BattleMove : Skill
     public float GetAttribute(BattleCombatant source, Enum_HeroAttributes target)
     {
         return source ? Mathf.Max(source.Attributes.GetStat(target), 1) : 1;
-    }  
-    public List<BattleCombatant> FilterByPlayerFilters(BattleCombatant checker, FilterRule[] filters, List<BattleCombatant> list)
+    }
+    public List<BattleCombatant> FilterByPlayerFilters(
+        BattleCombatant checker,
+        FilterRule[] filters,
+        List<BattleCombatant> list)
     {
-        if (list == null || list.Count == 0) return new List<BattleCombatant>();
-        if (filters == null || filters.Length == 0) return list;
+        if (list == null || list.Count == 0)
+            return new List<BattleCombatant>();
 
-        List<BattleCombatant> working = list;
+        if (filters == null || filters.Length == 0)
+            return list;
 
+        List<BattleCombatant> working = new(list);
+
+        // PASS 1: Apply all filters first
         foreach (var rule in filters)
         {
-            if (rule == null) continue;
+            if (rule == null || rule.mode != E_MoveFilterMode.filter)
+                continue;
 
             working = rule.Filter(checker, working);
 
             if (working == null || working.Count == 0)
                 return new List<BattleCombatant>();
+        }
+
+        // PASS 2: Apply all pickers second
+        foreach (var rule in filters)
+        {
+            if (rule == null || rule.mode != E_MoveFilterMode.picker)
+                continue;
+
+            working = rule.Filter(checker, working);
+
+            if (working == null || working.Count == 0)
+                return new List<BattleCombatant>();
+
+            // Pickers always return exactly one target.
+            if (working.Count > 1)
+            {
+                int index = UnityEngine.Random.Range(0, working.Count);
+
+                working = new List<BattleCombatant>()
+            {
+                working[index]
+            };
+            }
         }
 
         return working;

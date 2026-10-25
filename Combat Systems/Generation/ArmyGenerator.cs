@@ -22,7 +22,7 @@ public class ArmyGenerator : ScriptableObject
 
         Unit pull = possibleLineUps[Random.Range(0, possibleLineUps.Length)].Copy(team);
 
-        return pull;
+        return ScaleUnit(pull);
     }
     public Unit GetRandomBoss()
     {
@@ -30,7 +30,7 @@ public class ArmyGenerator : ScriptableObject
 
         Unit pull = bosses[Random.Range(0, bosses.Length)].Copy(team);
 
-        return pull;
+        return ScaleUnit(pull, true);
     }
 
     public Unit[] GetRandomArmy(int size)
@@ -49,7 +49,7 @@ public class ArmyGenerator : ScriptableObject
         }
 
         if (bosses.Length > 0 && picks.Count > 0)
-            picks[0] = ScaleUnit(GetRandomBoss(), true);
+            picks[0] = GetRandomBoss();
 
         return picks.ToArray();
     }
@@ -99,33 +99,19 @@ public class ArmyGenerator : ScriptableObject
 
     public Unit ScaleUnit(Unit input, bool boss = false)
     {
-        if (input == null || input.heroes.Count == 0)
+        if (input == null || input.heroes == null || input.heroes.Count == 0)
             return input;
 
-        int halfCurrent = Mathf.FloorToInt(GameManager.Distance / 2f);
-
-        input.Leader().level =
-            Mathf.Clamp(
-                1 + halfCurrent
-                + GameManager.CurrentLevel
-                + GameManager.Player.HighestLevel(0.33f)
-                + Random.Range(minLevel, maxLevel),
-                1, 20
-            );
+        int bossBoost = boss ? GameManager.Player.currentWorld.difficulty : 0;
 
         for (int i = 0; i < input.heroes.Count; i++)
         {
-            if (i == input.leaderIndex) continue;
+            Hero hero = input.heroes[i];
 
-            input.heroes[i].level =
-                (boss ? GameManager.Player.currentWorld.difficulty : 0)
-                + Mathf.Clamp(
-                    halfCurrent
-                    + GameManager.CurrentLevel
-                    + GameManager.Player.HighestLevel(0.25f)
-                    + Random.Range(minLevel, maxLevel),
-                    1, 20
-                );
+            if (i == input.leaderIndex && boss)
+                hero.level = Mathf.Min(maxLevel + bossBoost, 20);
+
+            else hero.level = Mathf.Clamp(Random.Range(minLevel, maxLevel) + bossBoost, 1, 20);
         }
 
         return input;

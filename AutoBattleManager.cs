@@ -202,14 +202,15 @@ public class AutoBattleManager : StateMachine
          
         pull.Push(); 
     }
-    public static void CompleteAction(BattleEvent completed)
+    public static void CompleteAction(BattleEvent completed, bool silent = true)
     {
         if (completed == null) return;
          
-        Stack.Remove(completed); 
+        Stack.Remove(completed);
 
-        foreach (var t in completed.targets) 
-            t.AsOwner(completed, Enum_BattleEvent_Type.onAfterTargeted); 
+        if (!silent)
+            foreach (var t in completed.targets)
+                t.AsOwner(completed, Enum_BattleEvent_Type.onAfterTargeted);
 
         if (Stack.Count > 0)
             ResolveNext();

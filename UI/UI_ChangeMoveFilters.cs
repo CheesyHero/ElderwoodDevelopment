@@ -41,25 +41,12 @@ public class UI_ChangeMoveFilters : MonoBehaviour
     {
         if (next == null || CurrentPlan == null) return;
 
-        if(CurrentContainsFilterType(next.type))
-        { 
-            UpdateExistingFilter(next); 
+        if (CurrentContainsFilterType(next.type))
+        {
+            UpdateExistingFilter(next);
         }
         else
-        {
-            if(CurrentPlan.filters.Contains(next)) 
-            {
-                CurrentPlan.filters.Remove(next);
-            }
-            else
-            {
-                if (CurrentPlan.filters.Count >= 2)
-                    CurrentPlan.filters.RemoveAt(0);
-
-                CurrentPlan.filters.Add(next);
-            }
-
-        }  
+            CurrentPlan.ChangePlan(next);
 
         OnNewCurrent?.Invoke();
         UI_FullArmyDisplay.OnUpdateHero?.Invoke(UI_FullArmyDisplay.CurrentHero);

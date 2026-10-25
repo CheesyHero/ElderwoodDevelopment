@@ -32,11 +32,15 @@ public class BattleCombatant : MonoBehaviour
     public ParticleSystem actionEffect; // Plays when a move starts
     public ParticleSystem reactionEffect; // Plays when a reaction starts
     public ParticleSystem specialEffect; // Plays when a specail move starts
+    public ParticleSystem chargingEffect; // Plays when charging a move
+
     public Transform particlePoint;
 
     [Header("Statistics")]
+    public int turnsCharged = 0;
     public int actionsUsed = 0;
     public int reactionsUsed = 0;
+    private BattleEvent chargeMove;
     public int TotalActionsUsed { get { return actionsUsed + reactionsUsed; } }
 
     public string FullTeamName { get { return team.teamName + " " + hero.characterName; } }
@@ -83,7 +87,7 @@ public class BattleCombatant : MonoBehaviour
 
     private void ListenForEvent(BattleEvent action)
     {
-        if (action == null) return; 
+        if (action == null || chargeMove != null) return; 
 
         BattleEvent response = hero.plan.Compare(this, action);
         if (response == null) return; // No reaction satisfied their conditions
@@ -198,8 +202,19 @@ public class BattleCombatant : MonoBehaviour
     {
         if (battleEvent == null || routine != null) return;
 
-        CollectMods();
-        routine = StartCoroutine(HitAllTargets(battleEvent)); 
+        if(turnsCharged < battleEvent.move.chargeTurns)
+        {
+            routine = StartCoroutine(ChargeTurn(battleEvent));
+        }
+        else
+        {
+            // No more charge move
+            chargeMove = null;
+            turnsCharged = 0;
+
+            CollectMods();
+            routine = StartCoroutine(HitAllTargets(battleEvent));
+        } 
     }
     private List<BattleCombatant> FilterDefeated(List<BattleCombatant> input)
     {
@@ -220,10 +235,10 @@ public class BattleCombatant : MonoBehaviour
     }
 
     public bool PrimaryActionStart()
-    {
+    { 
         // Plan now owns: choosing a move, filtering targets, applying range extension,
         // and returning a fully-formed BattleEvent (or null).
-        BattleEvent action = hero.plan.GetActionEvent(this);
+        BattleEvent action = chargeMove == null ? hero.plan.GetActionEvent(this) : chargeMove;
 
         if (action == null)
         {
@@ -244,6 +259,10 @@ public class BattleCombatant : MonoBehaviour
             actionEffect.Play();
         else if (move.moveType == MoveType.reaction && reactionEffect)
             reactionEffect.Play();
+    }
+    public void PlayChargingPArticle()
+    {
+        if (chargingEffect) chargingEffect.Play();
     }
 
     public void TriggerEvent(BattleEvent action)
@@ -302,7 +321,7 @@ public class BattleCombatant : MonoBehaviour
             AutoBattleManager.CompleteAction(action);
 
         else
-        { 
+        {  
             UI_PopUpTrigger.RigidPopUp(action.move ? action.move.skillName : "no move", transform.position, 64);
             Emit(action);
              
@@ -355,6 +374,19 @@ public class BattleCombatant : MonoBehaviour
 
         routine = null;
         AutoBattleManager.CompleteAction(battleEvent);
+    }
+    IEnumerator ChargeTurn(BattleEvent battleEvent)
+    {
+        chargeMove = battleEvent;
+        turnsCharged += 1;
+
+        PrintPopUp("Charging", Color.white);
+        PlayChargingPArticle();
+
+        yield return new WaitForSeconds(1);
+
+        routine = null;
+        AutoBattleManager.CompleteAction(battleEvent, true); // true for silently, no events
     }
 
     IEnumerator ProjectileAttack(BattleEvent battleEvent)
