@@ -64,6 +64,19 @@ public class MovePriorityEntry
             return;
         }
 
+        // If the same rule type exists, replace it.
+        for (int i = 0; i < filters.Count; i++)
+        {
+            if (filters[i] == null || filters[i].type != next.type)
+                continue;
+
+            filters[i] = next;
+
+            // Maintain Picker-first ordering.
+            filters.Sort((a, b) => a.mode.CompareTo(b.mode));
+            return;
+        }
+
         // Only one Picker can exist at a time.
         if (next.mode == E_MoveFilterMode.picker)
         {
@@ -81,7 +94,6 @@ public class MovePriorityEntry
         else
             filters.Add(next);
 
-        // Ensure Picker is always first, even after cycling.
         filters.Sort((a, b) => a.mode.CompareTo(b.mode));
     }
 }

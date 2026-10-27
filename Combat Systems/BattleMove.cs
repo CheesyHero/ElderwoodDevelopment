@@ -282,38 +282,69 @@ public class BattleMove : Skill
         return results;
     }
 
-    public List<BattleCombatant> ExtendToColumn(BattleCombatant target, List<BattleCombatant> list)
+    public List<BattleCombatant> ExtendToColumn(BattleCombatant target, List<BattleCombatant> fullPool)
     {
-        if (target == null || list == null) return new List<BattleCombatant>();
-
-        int col = Mathf.RoundToInt(target.placement.y);
         List<BattleCombatant> results = new();
 
+        if (target == null || fullPool == null)
+            return results;
+
+        int col = Mathf.RoundToInt(target.placement.y); 
+
+        foreach (BattleCombatant hero in fullPool)
+        {
+            if (hero == null || !hero.IsAlive)
+                continue;
+
+            bool sameColumn =
+                Mathf.RoundToInt(hero.placement.y) == col;
+
+            // Standard column targeting.
+            if (sameColumn)
+            {
+                results.Add(hero);
+                continue;
+            } 
+        }
+
+        if (!results.Contains(target))
+            results.Add(target);
+
+        return results;
+    }
+
+    public List<BattleCombatant> FilterByMeleeRange(List<BattleCombatant> list)
+    {
+        if (!melee || list == null || list.Count == 0)
+            return list;
+
+        int lowestRow = int.MaxValue;
+
+        // Find the lowest occupied row.
         foreach (var item in list)
         {
-            if (item == null) continue;
-            if (!item.hero.health.IsAlive) continue;
+            if (item == null || !item.IsAlive)
+                continue;
 
-            if (Mathf.RoundToInt(item.placement.y) == col)
+            int row = Mathf.RoundToInt(item.placement.x);
+
+            if (row < lowestRow)
+                lowestRow = row;
+        }
+
+        List<BattleCombatant> results = new();
+
+        // Keep only combatants in the lowest row.
+        foreach (var item in list)
+        {
+            if (item == null || !item.IsAlive)
+                continue;
+
+            if (Mathf.RoundToInt(item.placement.x) == lowestRow)
                 results.Add(item);
         }
 
-        if (!results.Contains(target)) results.Add(target);
         return results;
-    }
-    public List<BattleCombatant> FilterByMeleeRange(List<BattleCombatant> list)
-    {
-        if (melee == false) return list;
-
-        List<BattleCombatant> frontLine = new();
-        foreach(var item in list)
-            if(item.placement.x <= 0)
-                frontLine.Add(item);
-
-        if (frontLine.Count > 0)
-            return frontLine;
-
-        else return list;
     }
 
     public List<BattleCombatant> GetPreferedTeam(Team team)

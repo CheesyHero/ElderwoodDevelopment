@@ -202,7 +202,7 @@ public class AutoBattleManager : StateMachine
          
         pull.Push(); 
     }
-    public static void CompleteAction(BattleEvent completed, bool silent = true)
+    public static void CompleteAction(BattleEvent completed, bool silent = false)
     {
         if (completed == null) return;
          

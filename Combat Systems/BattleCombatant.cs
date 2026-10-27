@@ -87,17 +87,27 @@ public class BattleCombatant : MonoBehaviour
 
     private void ListenForEvent(BattleEvent action)
     {
-        if (action == null || chargeMove != null) return; 
+        if (action == null)
+        {
+            Debug.LogWarning($"[{name}] Received NULL BattleEvent.");
+            return;
+        } 
+
+        if (chargeMove != null) 
+            return; // Charging move, cancel reactions
 
         BattleEvent response = hero.plan.Compare(this, action);
-        if (response == null) return; // No reaction satisfied their conditions
-        if (response.move.limited && response.move == action.move && response.owner.team == action.owner.team)
-            return; // We cannot react or use the same move an ally used if limited. (No loops) (RP+)
 
-        // Complete
-        hero.plan.MarkResponded(action.instanceId, this);  
+        if (response == null) 
+            return;  
+
+        if (response.move.limited && response.move == action.move && response.owner.team == action.owner.team) 
+            return; 
+
+        hero.plan.MarkResponded(action.instanceId, this); 
+
         AutoBattleManager.AddToStack(response);
-    } 
+    }
     private void CheckStatuses(BattleEvent action)
     {
         if (action == null) return;
@@ -198,7 +208,7 @@ public class BattleCombatant : MonoBehaviour
             particlePoint.eulerAngles = flip ? Vector3.zero : new Vector3(0f, 180f, 0f);
     }
     private Coroutine routine;
-    private void InitateMove(BattleEvent battleEvent)
+    private void InitiateMove(BattleEvent battleEvent)
     {
         if (battleEvent == null || routine != null) return;
 
@@ -325,7 +335,7 @@ public class BattleCombatant : MonoBehaviour
             UI_PopUpTrigger.RigidPopUp(action.move ? action.move.skillName : "no move", transform.position, 64);
             Emit(action);
              
-            InitateMove(action);
+            InitiateMove(action);
         } 
     }
     private bool MoveFailed(BattleEvent action)
@@ -680,7 +690,7 @@ public class BattleCombatant : MonoBehaviour
     {
         if (hero.health.health_current < startingHealth)
         {  
-            Emit(battleEvent);
+            Emit(battleEvent); // Should be On Damage Taken
             AsOwner(battleEvent, Enum_BattleEvent_Type.onHealthLost);
             battleEvent.source.AsOwner(battleEvent, Enum_BattleEvent_Type.onDamageDealt);
              
@@ -981,7 +991,9 @@ public class BattleCombatant : MonoBehaviour
 
     public void GainMana(float mana, BattleEvent e)
     {
-        if (IsAlive == false)
+        if (isMinion) hero.health.mana_current = 0;
+
+        if (IsAlive == false || isMinion == true)
             return;
 
         if (e.move != null && e.move.moveType == MoveType.special)

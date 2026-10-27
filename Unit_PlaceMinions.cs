@@ -39,23 +39,62 @@ public class Unit_PlaceMinions : MonoBehaviour
     // -------------------------
     // Existing placement (safer)
     // -------------------------
-    public void PlaceCombatantOnNextTile(BattleCombatant combatant)
+    public bool PlaceCombatantOnNextTile(BattleCombatant combatant)
     {
-        if (!combatant) return;
+        if (!combatant) return false;
 
-        BattleTile next = GetNextInactiveEmptyTile();
-        if (!next) return;
+        BattleTile next = GetRandomAvailableTile();
 
-        combatant.transform.SetPositionAndRotation(next.transform.position, next.transform.rotation);
-        combatant.transform.SetParent(next.transform, true);
-        combatant.placement = next.GetUnitPosition();
+        if (!next)
+        {
+            Debug.LogWarning("Minion Rack: No available slots.");
+            return false;
+        }
 
-        // Once occupied, ensure tile is visible
+        // Replace a defeated minion only if its tile was selected.
+        RemoveDefeatedMinion(next);
+
+        // BattleTile handles parenting, placement, and visuals.
+        if (!next.SetHero(combatant, combatant.parent.Attacker))
+            return false;
+
         next.gameObject.SetActive(true);
         next.transform.localScale = Vector3.zero;
-        LeanTween.scale(next.gameObject, Vector3.one * 0.8f, 0.6f).setEaseOutBack();
 
-        SpaceVisibleTilesEvenly();
+        LeanTween.scale(next.gameObject, Vector3.one * 0.8f, 0.6f)
+            .setEaseOutBack();
+
+        return true;
+    }
+
+    private BattleTile ReplaceDefeatedMinion()
+    {
+        if (children == null || children.Length == 0)
+            RefreshTiles();
+
+        foreach (BattleTile tile in children)
+        {
+            if (!tile) continue;
+
+            BattleCombatant existing = GetCombatantOnTile(tile, true);
+
+            if (!existing || existing.IsAlive)
+                continue;
+
+            // Remove from the parent unit's minion registry.
+            if (existing.parent != null)
+                existing.parent.minions.Remove(existing);
+
+            // Deactivate immediately so it stops participating in combat.
+            existing.gameObject.SetActive(false);
+
+            // Destroy at the end of the frame.
+            Destroy(existing.gameObject);
+
+            return tile;
+        }
+
+        return null;
     }
 
     public BattleTile GetNextInactiveEmptyTile()
@@ -160,5 +199,53 @@ public class Unit_PlaceMinions : MonoBehaviour
             localPos.x = startX + (i * buffer);
             t.localPosition = localPos;
         }
+    }
+
+    public BattleTile GetRandomAvailableTile()
+    {
+        if (children == null || children.Length == 0)
+            RefreshTiles();
+
+        List<BattleTile> available = new();
+
+        foreach (BattleTile tile in children)
+        {
+            if (!tile) continue;
+
+            BattleCombatant occupant = GetCombatantOnTile(tile, true);
+
+            // Living minions occupy their tiles.
+            if (occupant != null && occupant.IsAlive)
+                continue;
+
+            // Empty tiles and defeated minions are both valid.
+            available.Add(tile);
+        }
+
+        if (available.Count == 0)
+            return null;
+
+        int index = Random.Range(0, available.Count);
+        return available[index];
+    }
+    private void RemoveDefeatedMinion(BattleTile tile)
+    {
+        if (!tile) return;
+
+        BattleCombatant existing = GetCombatantOnTile(tile, true);
+
+        if (!existing || existing.IsAlive)
+            return;
+
+        // Remove the old minion from its unit.
+        if (existing.parent != null)
+            existing.parent.minions.Remove(existing);
+
+        // Detach immediately so the tile no longer contains the old minion.
+        existing.transform.SetParent(null, true);
+
+        // Deactivate and destroy.
+        existing.gameObject.SetActive(false);
+        Destroy(existing.gameObject);
     }
 }
