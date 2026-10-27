@@ -33,7 +33,7 @@ public class AutoBattleManager : StateMachine
     [SerializeField] protected Battle_End_Turn turn_end = new(); 
     [SerializeField] protected Battle_End_Round round_end = new(); 
     [SerializeField] protected Battle_End_State battle_end = new();
-    [SerializeField] protected Battle_End_State battle_completing = new();
+    [SerializeField] protected Battle_Show_Rewards battle_rewards = new(); 
     [SerializeField] protected Battle_Exit_State battle_exit = new();
     [SerializeField] protected Battle_Idle idle = new();
 
@@ -51,7 +51,7 @@ public class AutoBattleManager : StateMachine
         AddNewState(turn_end);
         AddNewState(round_end); 
         AddNewState(battle_end);
-        AddNewState(battle_completing);
+        AddNewState(battle_rewards); 
         AddNewState(battle_exit);
         AddNewState(idle);
 
@@ -138,6 +138,8 @@ public class AutoBattleManager : StateMachine
     public static void EndBattle()
     { 
         Debug.LogWarning("BATTLE ENDED");
+
+        // Makes heroes leave accordingly
     } 
     public static void SetNextTurn()
     {

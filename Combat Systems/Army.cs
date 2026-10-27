@@ -417,10 +417,12 @@ public class Army : MonoBehaviour
     }
     public int SpawnCost(int index)
     {
-        if (index < 0 || index > units.Count)
+        return 2;
+
+        /* if (index < 0 || index > units.Count)
             return -1;
 
-        else return units[index].heroes.Count;
+        else return units[index].heroes.Count; */
     }
 
     public void DrawCards(int v)

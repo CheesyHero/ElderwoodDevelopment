@@ -119,6 +119,7 @@ public class BattleUnit : MonoBehaviour
 
         Debug.Log($"Attempting to create a new hero : Copy of {copy.characterName}");
         BattleCombatant spawn = CreateMinion(copy);
+
         spawn.actionPoints = target.actionPoints;
         spawn.reactionPoints = target.reactionPoints;
 
@@ -131,7 +132,9 @@ public class BattleUnit : MonoBehaviour
         spawn.modifiers.magic = copyStats;
         spawn.modifiers.resist = copyStats;
 
-        spawn.transform.localScale *= copyStats; 
+        spawn.transform.localScale *= copyStats;
+        spawn.actionPoints = Mathf.CeilToInt((float)spawn.actionPoints / 2f);
+        spawn.reactionPoints = Mathf.FloorToInt(((float)spawn.reactionPoints - 1) / 2f);
 
         minionRack.PlaceCombatantOnNextTile(spawn); 
     }
@@ -181,6 +184,9 @@ public class BattleUnit : MonoBehaviour
         int total = 0;
         foreach (var hero in children)
             total += hero.hero.health.IsAlive ? hero.actionPoints : 0;
+
+        foreach (var minion in minions)
+            total += minion.hero.health.IsAlive ? minion.actionPoints : 0;
 
         return total;
     }
@@ -259,5 +265,32 @@ public class BattleUnit : MonoBehaviour
             if (hero.IsBackRow()) hits.Add(hero);
 
         return hits;
+    }
+
+    public void Retreat()
+    {
+        for(int x = 0; x < tiles.Length; x++)
+        {
+            for (int y = 0; y < tiles[x].Length; y++)
+            { 
+                tiles[x][y].WalkOut(Attacker);
+            }
+        }
+    }
+    public static void EndStage()
+    {
+        if (AllUnits.Count != 2) return;
+
+        bool winner = AutoBattleManager.winner == AllUnits[0].parent; 
+
+        bool isBase = HexWalker.DisputedTerritory is TeamBase;
+        bool defenderAlive = AllUnits[1].currentHP > 0;
+
+        bool attackerRetreats = !winner || (isBase && defenderAlive);
+
+        if (attackerRetreats)
+            AllUnits[0].Retreat();
+        else
+            AllUnits[1].Retreat();
     }
 }

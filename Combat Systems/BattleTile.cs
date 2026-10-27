@@ -5,8 +5,7 @@ using UnityEngine;
  
 [SelectionBase]
 public class BattleTile : MonoBehaviour
-{ 
-
+{  
     [SerializeField] 
     protected Vector2 unitPosition;
     public BattleCombatant CurrentHero { get; private set; }
@@ -26,6 +25,8 @@ public class BattleTile : MonoBehaviour
 
         CurrentHero.name = CurrentHero.FullTeamName;
         CurrentHero.placement = unitPosition;
+         
+        if (flip) WalkIn(flip);
 
         return CurrentHero;
     }
@@ -40,7 +41,7 @@ public class BattleTile : MonoBehaviour
         CurrentHero.transform.SetParent(transform, false);
         CurrentHero.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 
-        CurrentHero.Initialize();
+        // CurrentHero.Initialize();
         CurrentHero.FindArt(flip);
 
         CurrentHero.name = CurrentHero.FullTeamName;
@@ -60,5 +61,22 @@ public class BattleTile : MonoBehaviour
     public Vector2 GetUnitPosition()
     {  
         return unitPosition;
+    }
+
+    
+    public void WalkIn(bool flip) // default offense
+    { // should animate hero to walk in into frame  
+        if (!CurrentHero) return;
+
+        CurrentHero.transform.position += (flip ? -1 : 1) * 10 * Vector3.right;
+        LeanTween.move(CurrentHero.gameObject, transform.position, UnityEngine.Random.Range(0.6f, 1.2f)).setEaseOutSine();
+    }
+
+    public void WalkOut(bool flip) // default offense
+    { // should animate hero to walk out of frame 
+        if (!CurrentHero || CurrentHero.hero.health.IsDead) return;
+
+        Vector3 target = transform.position - (flip ? -1 : 1) * 10 * Vector3.left;
+        LeanTween.move(CurrentHero.gameObject, target, UnityEngine.Random.Range(0.5f, 1f)).setEaseInSine();
     }
 }

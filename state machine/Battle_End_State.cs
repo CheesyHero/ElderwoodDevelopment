@@ -3,6 +3,8 @@ using UnityEngine;
 [System.Serializable]
 public class Battle_End_State : State
 {
+    // this state is for end battle triggers
+
     public float endTime = 1f;
     private float clock;
     private bool limiter = false;
@@ -16,6 +18,7 @@ public class Battle_End_State : State
     public override void Enter()
     {
         AutoBattleManager.EndBattle();
+
         clock = Time.time;
         limiter = true;
 
@@ -29,7 +32,8 @@ public class Battle_End_State : State
 
     public override void Next()
     {
-        parent.ChangeState("battle_exit");
+        // battle is over, go to rewards before exit
+        parent.ChangeState("battle_rewards");
         limiter = false;
     }
 

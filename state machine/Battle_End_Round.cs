@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class Battle_End_Round : State
 {
+    // this state is for END OF BATTLE triggers
+    // Not actually the end of battle yet
+
     public override void Initialize(StateMachine load)
     {
         StateID = "round_end";

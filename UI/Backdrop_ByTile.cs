@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class Backdrop_ByTile : MonoBehaviour
@@ -7,7 +8,17 @@ public class Backdrop_ByTile : MonoBehaviour
     private void Awake()
     {
         if (!backdrop) backdrop = GetComponent<SpriteRenderer>();
+
+        AutoBattleManager.OnBattleEvent += LoadBackdrop;
+        AutoBattleManager.OnStateChange += LoadBackdrop; 
     }
+    private void OnDestroy()
+    { 
+        AutoBattleManager.OnBattleEvent -= LoadBackdrop;
+        AutoBattleManager.OnStateChange -= LoadBackdrop;
+    }
+
+    private void LoadBackdrop(object _) => LoadBackdrop();
 
     private void Start()
     {
