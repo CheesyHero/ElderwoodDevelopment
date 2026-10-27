@@ -2,15 +2,28 @@ using UnityEngine;
 
 public class Backdrop_ByTile : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public SpriteRenderer backdrop;
+
+    private void Awake()
     {
-        
+        if (!backdrop) backdrop = GetComponent<SpriteRenderer>();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Start()
     {
-        
+        LoadBackdrop();
+    }
+    private void OnEnable()
+    {
+        LoadBackdrop();
+    }
+
+    private void LoadBackdrop()
+    {
+        if (HexWalker.DisputedTerritory == null || backdrop == null)
+            return;
+
+        if (HexWalker.DisputedTerritory.backdrop != null)
+            backdrop.sprite = HexWalker.DisputedTerritory.backdrop;
     }
 }

@@ -28,7 +28,8 @@ public class HexTile : Selectable
     public List<HexTile> adjacents = new();
 
     public static UnityAction<HexTile> OnChangeOwnership; 
-    public UnityAction<int> OnUpdateCost; 
+    public UnityAction<int> OnUpdateCost;
+    public Sprite backdrop;
 
     public void Clear()
     {
