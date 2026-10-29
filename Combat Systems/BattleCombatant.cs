@@ -33,6 +33,7 @@ public class BattleCombatant : MonoBehaviour
     public ParticleSystem reactionEffect; // Plays when a reaction starts
     public ParticleSystem specialEffect; // Plays when a specail move starts
     public ParticleSystem chargingEffect; // Plays when charging a move
+    public BuffParticlePlayer positiveStatChanges;
 
     public Transform particlePoint;
 
@@ -1104,5 +1105,26 @@ public class BattleCombatant : MonoBehaviour
             BattleParticleTarget.Field => Vector3.zero,
             _ => target ? target.transform.position : transform.position,
         };
+    } 
+
+    public void ModifyAttribute(int index, float weight)
+    {
+        Enum_HeroAttributes stat =
+            (Enum_HeroAttributes)Mathf.Clamp(index, 0, 11);
+
+        modifiers.MultiplyStat(stat, weight);
+
+        float printValue = weight - 1f;
+        PrintPopUp($"{printValue:0%} {Attributes.PrintAttributeName(stat)}", Color.white, 48);
+
+        PlayAttributeParticle(stat); 
+    }
+
+    private void PlayAttributeParticle(Enum_HeroAttributes stat)
+    { 
+        if (!positiveStatChanges)
+            return;
+
+        positiveStatChanges.Play(stat);
     }
 }

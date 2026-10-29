@@ -469,9 +469,9 @@ public class BattleEffect
     {
         if (target == null || target.hero == null) return;
 
-        Enum_HeroAttributes stat = (Enum_HeroAttributes)Mathf.Clamp(index, 0, 11); 
-           
-        target.modifiers.MultiplyStat(stat, weight);
+        Enum_HeroAttributes stat = (Enum_HeroAttributes)Mathf.Clamp(index, 0, 11);
+
+        target.ModifyAttribute(index, weight);
 
         target.Emit(new()
         {
@@ -481,11 +481,8 @@ public class BattleEffect
             targets = new() { target },
             value = weight,
         });
-        Debug.Log($"{source} Modified {target} {stat} to {weight}");
 
-
-        float printValue = weight - 1f;
-        UI_PopUpTrigger.CreatePopUp($"{printValue:0%} {Attributes.PrintAttributeName(stat)}", Color.white, target.transform.position, 64);
+        Debug.Log($"{source} Modified {target} {(Enum_HeroAttributes)Mathf.Clamp(index, 0, 11)} to {weight}"); 
     }
 
 }

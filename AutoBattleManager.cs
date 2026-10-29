@@ -234,65 +234,24 @@ public class AutoBattleManager : StateMachine
         StackUpdatedCall();
     }
     public static void AddToStack(BattleEvent action)
-    {
-        if (action == null)
-        {
-            Debug.LogWarning(
-                $"[STACK] Attempted to add NULL action. | " +
-                $"Current State: {Manager.currentState.StateID}"
-            );
-
-            return;
-        }
-
-        Debug.LogWarning(
-            $"[STACK ADD ATTEMPT] Owner: {action.owner} | " +
-            $"Move: {(action.move ? action.move.skillName : "NULL")} | " +
-            $"Type: {action.eventType} | " +
-            $"Current Stack Count: {Stack.Count} | " +
-            $"Current State: {Manager.currentState.StateID}"
-        );
+    { 
 
         foreach (var item in Stack)
         {
-            if (action.owner == item.owner && action.move == item.move)
-            {
-                Debug.LogWarning(
-                    $"[STACK ADD BLOCKED] Same owner and same move already exists. | " +
-                    $"Owner: {action.owner} | " +
-                    $"Move: {(action.move ? action.move.skillName : "NULL")} | " +
-                    $"Current State: {Manager.currentState.StateID}"
-                );
-
-                return;
-            }
+            if (action.owner == item.owner && action.move == item.move) 
+                return; 
 
             if (action.move != null &&
                 action.move.limited &&
                 action.move == item.move &&
                 action.owner.team == item.owner.team)
-            {
-                Debug.LogWarning(
-                    $"[STACK ADD BLOCKED] Limited allied move already exists. | " +
-                    $"Owner: {action.owner} | " +
-                    $"Move: {action.move.skillName} | " +
-                    $"Existing Owner: {item.owner} | " +
-                    $"Current State: {Manager.currentState.StateID}"
-                );
+            { 
 
                 return;
             }
         }
 
-        Stack.Add(action);
-
-        Debug.LogWarning(
-            $"[STACK ADDED] Owner: {action.owner} | " +
-            $"Move: {(action.move ? action.move.skillName : "NULL")} | " +
-            $"Type: {action.eventType} | " +
-            $"New Stack Count: {Stack.Count} | " +
-            $"Current State: {Manager.currentState.StateID}"
-        );
+        Stack.Add(action); 
 
         StackUpdatedCall();
 
@@ -304,25 +263,10 @@ public class AutoBattleManager : StateMachine
 
     public static void RemoveFromStack(BattleEvent action)
     {
-        if (action == null)
-        {
-            Debug.LogWarning(
-                $"[STACK REMOVE] Attempted to remove NULL action. | " +
-                $"Current State: {Manager.currentState.StateID}"
-            );
+        if (action == null) 
+            return; 
 
-            return;
-        }
-
-        bool removed = Stack.Remove(action);
-
-        Debug.LogWarning(
-            $"[STACK REMOVE] Success: {removed} | " +
-            $"Owner: {action.owner} | " +
-            $"Move: {(action.move ? action.move.skillName : "NULL")} | " +
-            $"Remaining Stack Count: {Stack.Count} | " +
-            $"Current State: {Manager.currentState.StateID}"
-        );
+        bool removed = Stack.Remove(action); 
 
         StackUpdatedCall();
     }
