@@ -305,6 +305,29 @@ public class Attributes
         };
     }
 
+
+    public void SetStat(Enum_HeroAttributes stat, float setting)
+    {
+        switch (stat)
+        {
+            case Enum_HeroAttributes.health: health = setting; break;
+            case Enum_HeroAttributes.mana: mana = setting; break;
+            case Enum_HeroAttributes.power: power = setting; break;
+            case Enum_HeroAttributes.armor: armor = setting; break;
+            case Enum_HeroAttributes.magic: magic = setting; break;
+            case Enum_HeroAttributes.resist: resist = setting; break;
+            case Enum_HeroAttributes.speed: speed = setting; break;
+            case Enum_HeroAttributes.accuracy: accuracy = setting; break;
+            case Enum_HeroAttributes.evasion: evasion = setting; break;
+            case Enum_HeroAttributes.shield: shield = setting; break;
+            case Enum_HeroAttributes.actions: actions = Mathf.RoundToInt(setting); break;
+            case Enum_HeroAttributes.reactions: reactions = Mathf.RoundToInt(setting); break;
+            case Enum_HeroAttributes.criticalChance: criticalChance = setting; break;
+            case Enum_HeroAttributes.criticalDamage: criticalDamage = setting; break;
+            case Enum_HeroAttributes.potential: potential = setting; break;
+        }
+    }
+
     public float MultiplyStat(Enum_HeroAttributes stat, float factor)
     {
         factor = Mathf.Max(0f, factor);

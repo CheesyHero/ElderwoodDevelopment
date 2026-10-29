@@ -14,7 +14,11 @@ public enum Enum_BattleEffect_Effects
     shield = 10, 
     heal = 20,
     modifyAttributes = 30,
+    resetAttributes = 35,
+
     applyStatusCondition = 40,
+    removeStatusConditions = 45,
+
     shatter = 60,
     redirect = 80,
     counterspell = 100,
@@ -70,38 +74,57 @@ public class BattleEffect
         switch(effect)
         {
             default: Debug.Log("<color=red>BATTLE EFFECT</color> : No implementation for effect value " + effect);
-                break;// Nothing ?
+                break; // Nothing ?
+
             case Enum_BattleEffect_Effects.damage:
                 DealDamage(source, target, mod);
                 break;
+
             case Enum_BattleEffect_Effects.physicalDamage:
                 DealDamage(source, target, mod);
                 break;
+
             case Enum_BattleEffect_Effects.magicalDamage:
                 DealDamage(source, target, mod);
                 break;
+
             case Enum_BattleEffect_Effects.loseHealth:
                 ApplyHealthLoss(source, target, mod);
                 break;
+
             case Enum_BattleEffect_Effects.mana:
                 ApplyManaChange(source, target, mod);
                 break;
+
             case Enum_BattleEffect_Effects.actions:
                 ModifyActions(source, target);
                 break; 
+
             case Enum_BattleEffect_Effects.heal:
                 RestoreHealth(source, target, mod);
                 break;
+
             case Enum_BattleEffect_Effects.shield:
                 AddShielding(source, target, mod);
                 break;
+
             case Enum_BattleEffect_Effects.shatter:
                 ShatterShield(source, target, mod);
-                break; 
+                break;
+
             case Enum_BattleEffect_Effects.modifyAttributes:
                 ModifyAttributes(source, target);
-                break; 
+                break;
+
+            case Enum_BattleEffect_Effects.resetAttributes:
+                ModifyAttributes(source, target);
+                break;
+
             case Enum_BattleEffect_Effects.applyStatusCondition:
+                ApplyStatusCondition(source, target, mod);
+                break;
+
+            case Enum_BattleEffect_Effects.removeStatusConditions:
                 ApplyStatusCondition(source, target, mod);
                 break;
 
@@ -195,6 +218,10 @@ public class BattleEffect
             duration = effect.duration
         };
         target.GainStatus(source, status);
+    }
+    public void RemoveStatusCondition(BattleCombatant source, BattleCombatant target, float mod)
+    {
+        target.RemoveAllStatusConditions(index);
     }
 
     public void DealDamage(BattleCombatant source, BattleCombatant target, float mod = 1f)
@@ -482,7 +509,33 @@ public class BattleEffect
             value = weight,
         });
 
-        Debug.Log($"{source} Modified {target} {(Enum_HeroAttributes)Mathf.Clamp(index, 0, 11)} to {weight}"); 
+        Debug.Log($"{source} Modified {target} {(Enum_HeroAttributes)Mathf.Clamp(index, 0, 11)} to {weight}");
+    }
+    public void ResetAttributes(BattleCombatant source, BattleCombatant target)
+    {
+        if (target == null || target.hero == null) return;
+
+        // 2 through 8 are our main stats, power, armor, magic, resist, speed, accuracy, evasion
+        for(int i = 2; i <= 8; i ++)
+        {
+            Enum_HeroAttributes stat = (Enum_HeroAttributes)i;
+            float currentvalue = target.modifiers.GetStat(stat);
+
+            if (index > -1 && currentvalue < 1) // Remove all negative effects, input settings are 0 or 1
+                target.modifiers.SetStat(stat, 1);
+
+            else if(index < 1 && currentvalue > 1) // Remove all positive effects, input settings are -1 or 0
+                target.modifiers.SetStat(stat, 1);
+        }
+
+        target.Emit(new()
+        {
+            eventType = Enum_BattleEvent_Type.onAttributeDebuff,
+            owner = target,
+            source = source,
+            targets = new() { target },
+            value = weight,
+        }); 
     }
 
 }

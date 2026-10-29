@@ -10,6 +10,8 @@ public class StatusCondition
     public float stacks = 0f;
     public int duration = -1; 
 
+    public bool Positive { get { return status ? status.positive : false; } }
+
     public void Apply(BattleCombatant hero, BattleEvent action)
     {
         if (hero == null || completedIDs.Contains(action.instanceId)) return;

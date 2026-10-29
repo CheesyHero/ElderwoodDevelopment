@@ -11,6 +11,7 @@ public class Passive : Skill
 {   
     public Color color; 
     public int duration = -1;
+    public bool positive = false;
     public bool compound = true;
     public ConditionEvent[] effects;
     public Modifier[] modifiers;
