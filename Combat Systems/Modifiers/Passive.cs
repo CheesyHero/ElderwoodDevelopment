@@ -15,6 +15,7 @@ public class Passive : Skill
     public bool compound = true;
     public ConditionEvent[] effects;
     public Modifier[] modifiers;
+    public ParticleSystem idleParticle;
 
     readonly static List<Passive> all = new();
     public static Passive[] AllEffects
