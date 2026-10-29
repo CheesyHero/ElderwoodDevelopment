@@ -938,6 +938,7 @@ public class BattleCombatant : MonoBehaviour
     {
         // CollectMods();
         float result = input;
+
         foreach (var item in mods)
             result = item.Parse(type, this, action, result);
 
@@ -955,16 +956,20 @@ public class BattleCombatant : MonoBehaviour
     private void CollectMods()
     {
         mods.Clear();
+
         foreach (var effect in statusEffects)
             mods.AddRange(effect.status.modifiers);
-        mods.AddRange(hero.equipment.GetAllMods());
+
+        mods.AddRange(hero.equipment.GetAllMods()); 
 
         mods.Sort((a, b) => a.priority.CompareTo(b.priority));
     }
     public float Initiative()
     {
         CollectMods();
+
         float speed = Attributes.speed;
+
         speed = ParseModifiers(Enum_BattleEvent_Modifier.initiative, null, speed);
 
         return speed;

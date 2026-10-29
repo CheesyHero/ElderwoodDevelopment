@@ -69,7 +69,11 @@ public class UI_CurrentStackResolution : ComponentLoader
 
     private string PrintWeaponText(BattleEvent action)
     {
-        string target = action.owner == action.targets[0] ? "self" : action.targets[0].ToString();
+        if (action.targets == null || action.targets.Count == 0)
+            return $"~ {action.owner} | {action.owner.hero.equipment.weapon}";
+
+        string target = action.owner == action.targets[0] ? "self" : 
+            (action.targets[0] != null ? action.targets[0].ToString() : "Target");
         if (action.move.moveType == MoveType.action)
             return $"~ {action.owner} | {action.owner.hero.equipment.weapon} vs. {target}";
 

@@ -129,7 +129,7 @@ public class AutoBattleManager : StateMachine
     }
     public static void AdjustInitiative()
     {
-        TurnOrder.Sort((a, b) => b.Initiative().CompareTo(a.Initiative()));
+        TurnOrder.Sort((a, b) => b.Initiative().CompareTo(a.Initiative())); 
     }
     public static void StartBattle()
     { 
@@ -158,6 +158,7 @@ public class AutoBattleManager : StateMachine
         if(TurnOrder.Count > 0)
         {
             AdjustInitiative();
+
             currentTurn = TurnOrder[0]; 
             TurnOrder.RemoveAt(0);
             View();

@@ -20,7 +20,9 @@ public class Battle_Show_Rewards : State
         clock = Time.time;
          
         AutoBattleManager.PrepWinner(); 
-        AutoBattleManager.GrantEXP(); 
+        AutoBattleManager.GrantEXP();
+         
+        BattleUnit.EndStage();
     }
 
     public override void Exit()
@@ -33,8 +35,6 @@ public class Battle_Show_Rewards : State
     {
         //Debug.Log($"{parent.name} has {StateID} state going to next..."); 
         parent.ChangeState("battle_exit");
-
-        BattleUnit.EndStage();
     }
 
     public override void Update()

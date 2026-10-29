@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Collections.Generic; 
 using UnityEngine; 
 
 public class BattleUnit : MonoBehaviour
@@ -281,16 +281,30 @@ public class BattleUnit : MonoBehaviour
     {
         if (AllUnits.Count != 2) return;
 
-        bool winner = AutoBattleManager.winner == AllUnits[0].parent; 
+        BattleUnit attacker = AutoBattleManager.OffenseTeam;
+        BattleUnit defender = AutoBattleManager.DefenseTeam;
+
+        bool attackerWins = AutoBattleManager.winner == attacker.parent;
 
         bool isBase = HexWalker.DisputedTerritory is TeamBase;
-        bool defenderAlive = AllUnits[1].currentHP > 0;
 
-        bool attackerRetreats = !winner || (isBase && defenderAlive);
+        bool defenderAlive = defender.parent.IsAlive();
 
-        if (attackerRetreats)
-            AllUnits[0].Retreat();
+        if (isBase)
+        { 
+            // Defending a base: attacker retreats unless defender is defeated.
+            if (defenderAlive)
+                attacker.Retreat();
+
+            else defender.Retreat();
+        }
         else
-            AllUnits[1].Retreat();
+        {
+            // Normal battle: loser retreats; ties favor defender.
+            if (attackerWins)
+                defender.Retreat();
+            else
+                attacker.Retreat();
+        }
     }
 }
