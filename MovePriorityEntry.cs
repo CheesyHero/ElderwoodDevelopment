@@ -36,13 +36,11 @@ public class MovePriorityEntry
     }
 
     public BattleEvent BuildActionEvent(BattleCombatant actor)
-    {
-        if (desiredMove == null || actor == null) return null;
+    { 
+        List<BattleCombatant> targets =
+            desiredMove.ResolveTargets(actor, filters?.ToArray()); 
 
-        List<BattleCombatant> targets = desiredMove.ResolveTargets(actor, filters?.ToArray());
-        if (targets == null || targets.Count == 0) return null;
-
-        return new BattleEvent()
+        BattleEvent result = new BattleEvent()
         {
             instanceId = 0,
             eventType = Enum_BattleEvent_Type.onTurnStart,
@@ -51,7 +49,9 @@ public class MovePriorityEntry
             source = actor,
             targets = targets,
             value = desiredMove.cost,
-        };
+        }; 
+
+        return result;
     }
 
     public void ChangePlan(FilterRule next)

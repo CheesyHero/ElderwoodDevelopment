@@ -462,46 +462,76 @@ public class BattleMove : Skill
     }
     public List<BattleCombatant> ResolveTargets(BattleCombatant checker, FilterRule[] filters)
     {
-        if (checker == null) return new();
+        if (checker == null)
+            return new();
 
-        // Full pool by team (do NOT melee-filter this)
         List<BattleCombatant> fullPool = GetPreferedTeam(checker.team);
-        if (fullPool == null || fullPool.Count == 0) return new();
 
-        // Candidates used to choose the primary target (melee can restrict THIS)
-        List<BattleCombatant> candidatePool = melee ? FilterByMeleeRange(new List<BattleCombatant>(fullPool))
-                                                   : new List<BattleCombatant>(fullPool);
+        Debug.LogWarning(
+            $"[TARGET RESOLVE] Move: {skillName} | " +
+            $"User: {checker} | " +
+            $"Team Setting: {team} | " +
+            $"Full Pool: {fullPool.Count} | " +
+            $"State: {AutoBattleManager.Manager.GetCurrentStateID()}"
+        );
 
-        // Target type
+        foreach (var item in fullPool)
+            Debug.LogWarning($"[TARGET FULL POOL] {item}");
+
+        if (fullPool == null || fullPool.Count == 0)
+            return new();
+
+        List<BattleCombatant> candidatePool =
+            melee
+                ? FilterByMeleeRange(new List<BattleCombatant>(fullPool))
+                : new List<BattleCombatant>(fullPool);
+
+        Debug.LogWarning(
+            $"[TARGET CANDIDATES BEFORE TYPE] Move: {skillName} | " +
+            $"Count: {candidatePool.Count}"
+        );
+
         List<BattleCombatant> candidates = targetType switch
         {
             TargetTypes.self => new List<BattleCombatant>() { checker },
             TargetTypes.all => new List<BattleCombatant>(fullPool),
-
-            // NEW: choose from candidates, excluding the checker
             TargetTypes.other => ExcludeSelf(checker, new List<BattleCombatant>(candidatePool)),
-
-            _ => new List<BattleCombatant>(candidatePool) // singleTarget
+            _ => new List<BattleCombatant>(candidatePool)
         };
 
-        // Filters
-        candidates = FilterByPlayerFilters(checker, filters, candidates);
-        if (candidates == null || candidates.Count == 0) return new();
+        Debug.LogWarning(
+            $"[TARGET BEFORE FILTERS] Move: {skillName} | " +
+            $"Count: {candidates.Count}"
+        );
 
-        // Single-target style: pick primary, then extend from FULL pool
+        candidates = FilterByPlayerFilters(checker, filters, candidates);
+
+        Debug.LogWarning(
+            $"[TARGET AFTER FILTERS] Move: {skillName} | " +
+            $"Count: {(candidates != null ? candidates.Count : 0)}"
+        );
+
+        if (candidates == null || candidates.Count == 0)
+            return new();
+
         if (targetType == TargetTypes.singleTarget || targetType == TargetTypes.other)
         {
             int idx = UnityEngine.Random.Range(0, candidates.Count);
             BattleCombatant primary = candidates[idx];
+
+            Debug.LogWarning(
+                $"[TARGET SELECTED] Move: {skillName} | " +
+                $"Primary: {primary}"
+            );
+
             return ApplyRangeExtension(primary, fullPool);
         }
 
-        // Self: extend from FULL pool (if you ever want row/col self effects)
         if (targetType == TargetTypes.self)
             return ApplyRangeExtension(checker, fullPool);
 
         return candidates;
-    } 
+    }
     List<BattleCombatant> ApplyRangeExtension(BattleCombatant primary, List<BattleCombatant> fullPool)
     {
         if (primary == null) return new List<BattleCombatant>();

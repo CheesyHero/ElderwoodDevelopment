@@ -8,6 +8,8 @@ public class StateMachine : MonoBehaviour
     protected State currentState;
     public readonly List<State> states = new();
 
+    public string GetCurrentStateID() => currentState?.StateID;
+
     protected virtual void Update()
     {
         currentState?.Update();
