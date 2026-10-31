@@ -128,19 +128,10 @@ public class AutoBattleManager : StateMachine
         Manager.__view_turn_order__ = TurnOrder.ToArray();
     }
     public static void AdjustInitiative()
-    {
-
+    { 
         TurnOrder.Sort(
             (a, b) => b.Initiative().CompareTo(a.Initiative())
-        );
-
-        if(TurnOrder.Count > 0)
-        Debug.LogWarning(
-            $"[INITIATIVE NEXT] Position: {TurnOrder.Count} | " +
-            $"Hero: {TurnOrder[0]} | " +
-            $"Initiative: {TurnOrder[0].Initiative()} | " +
-            $"Current State: {Manager.GetCurrentStateID()}"
-        );
+        ); 
     }
     public static void StartBattle()
     { 
@@ -315,7 +306,7 @@ public class AutoBattleManager : StateMachine
     public static void PrintForEachHero(string print, Color color, BattleUnit unit)
     {
         foreach (var hero in unit.children)
-            hero.PrintPopUp(print, color, 32);
+            hero.PrintPopUp(print, color);
     }
 
     public static bool StackContainsAsOwner(BattleCombatant hero)

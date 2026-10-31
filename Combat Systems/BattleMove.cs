@@ -52,8 +52,7 @@ public class BattleMove : Skill
     [Header("Animation")]
     public string animationID = "attack";
     public Projectile projectile;
-    public ParticleSystem impactFX;
-    public ParticleAnimator[] animations;
+    public ParticleSystem impactFX; 
 
     [Space(8)]
     public BattleParticleController[] specialEffects;
@@ -465,15 +464,7 @@ public class BattleMove : Skill
         if (checker == null)
             return new();
 
-        List<BattleCombatant> fullPool = GetPreferedTeam(checker.team);
-
-        Debug.LogWarning(
-            $"[TARGET RESOLVE] Move: {skillName} | " +
-            $"User: {checker} | " +
-            $"Team Setting: {team} | " +
-            $"Full Pool: {fullPool.Count} | " +
-            $"State: {AutoBattleManager.Manager.GetCurrentStateID()}"
-        );
+        List<BattleCombatant> fullPool = GetPreferedTeam(checker.team); 
 
         foreach (var item in fullPool)
             Debug.LogWarning($"[TARGET FULL POOL] {item}");
@@ -484,12 +475,7 @@ public class BattleMove : Skill
         List<BattleCombatant> candidatePool =
             melee
                 ? FilterByMeleeRange(new List<BattleCombatant>(fullPool))
-                : new List<BattleCombatant>(fullPool);
-
-        Debug.LogWarning(
-            $"[TARGET CANDIDATES BEFORE TYPE] Move: {skillName} | " +
-            $"Count: {candidatePool.Count}"
-        );
+                : new List<BattleCombatant>(fullPool); 
 
         List<BattleCombatant> candidates = targetType switch
         {
@@ -497,19 +483,9 @@ public class BattleMove : Skill
             TargetTypes.all => new List<BattleCombatant>(fullPool),
             TargetTypes.other => ExcludeSelf(checker, new List<BattleCombatant>(candidatePool)),
             _ => new List<BattleCombatant>(candidatePool)
-        };
+        }; 
 
-        Debug.LogWarning(
-            $"[TARGET BEFORE FILTERS] Move: {skillName} | " +
-            $"Count: {candidates.Count}"
-        );
-
-        candidates = FilterByPlayerFilters(checker, filters, candidates);
-
-        Debug.LogWarning(
-            $"[TARGET AFTER FILTERS] Move: {skillName} | " +
-            $"Count: {(candidates != null ? candidates.Count : 0)}"
-        );
+        candidates = FilterByPlayerFilters(checker, filters, candidates); 
 
         if (candidates == null || candidates.Count == 0)
             return new();
@@ -517,12 +493,7 @@ public class BattleMove : Skill
         if (targetType == TargetTypes.singleTarget || targetType == TargetTypes.other)
         {
             int idx = UnityEngine.Random.Range(0, candidates.Count);
-            BattleCombatant primary = candidates[idx];
-
-            Debug.LogWarning(
-                $"[TARGET SELECTED] Move: {skillName} | " +
-                $"Primary: {primary}"
-            );
+            BattleCombatant primary = candidates[idx]; 
 
             return ApplyRangeExtension(primary, fullPool);
         }

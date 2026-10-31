@@ -117,7 +117,7 @@ public class BattleEffect
                 break;
 
             case Enum_BattleEffect_Effects.resetAttributes:
-                ModifyAttributes(source, target);
+                ResetAttributes(source, target);
                 break;
 
             case Enum_BattleEffect_Effects.applyStatusCondition:
@@ -125,7 +125,7 @@ public class BattleEffect
                 break;
 
             case Enum_BattleEffect_Effects.removeStatusConditions:
-                ApplyStatusCondition(source, target, mod);
+                RemoveStatusCondition(source, target, mod);
                 break;
 
             case Enum_BattleEffect_Effects.redirect:
@@ -222,6 +222,8 @@ public class BattleEffect
     public void RemoveStatusCondition(BattleCombatant source, BattleCombatant target, float mod)
     {
         target.RemoveAllStatusConditions(index);
+
+        target.PrintPopUp("Clensed", Color.white);
     }
 
     public void DealDamage(BattleCombatant source, BattleCombatant target, float mod = 1f)
@@ -236,7 +238,7 @@ public class BattleEffect
         if(index != 0) // life drain / life steal
         { // If positive, recovery
 
-            float percent = (float)index / 100f;
+            float percent = (float)index * 0.01f;
             float recoil = damage * percent;
             if (recoil < 0)
                 source.TakeDamage(new(lastAction.move, lastAction.owner, source, source, recoil));
@@ -244,40 +246,55 @@ public class BattleEffect
             else source.GainHealth(new(lastAction.move, lastAction.owner, source, source, -recoil));
         }
     }
-    public float RollDamage(BattleCombatant source, BattleCombatant target, float mod = 1f)
-    { 
+
+    public float RollDamage(BattleCombatant source, BattleCombatant target,  float mod = 1f)
+    {
         float variance = Random.Range(0.9f, 1.1f);
 
         float offense = GetOffense(source);
-        float defense = GetDefense(target);  
+        float defense = GetDefense(target);
+
         Equalize(ref offense, ref defense);
 
-        float contest = offense / Mathf.Max(1f, defense);
-        float basePower = Mathf.Sqrt(weight * offense) * contest; 
+        offense = Mathf.Max(0f, offense);
+        defense = Mathf.Max(1f, defense);
 
-        return CheckFatigue(Mathf.Ceil(basePower * variance * mod), source, target);
+        float contest = 3;//offense / defense;
+        float basePower = Mathf.Sqrt(Mathf.Max(0f, source.hero.level * weight * offense / defense)) * contest;
+
+        float damage = basePower * variance * mod;
+
+        damage = CheckFatigue(damage, source, target);
+
+        return Mathf.Ceil(Mathf.Max(0f, damage));
     }
+
     public float CheckFatigue(float input, BattleCombatant source, BattleCombatant target)
-    { 
-        input = FatigueModifierOffense(input, source.parent.GetMapParent());
+    {
+        input = FatigueModifierOffense(input, source.parent.GetMapParent()); 
         input = FatigueModifierDefense(input, target.parent.GetMapParent());
 
         return input;
     }
+
     public float FatigueModifierOffense(float input, HexWalker walker)
     {
         if (walker == null) return input;
 
-        float fatigue = 1f + (walker.fatigue / 20);
+        float fatigue = 1f + Mathf.Max(0f, walker.fatigue) / 20f;
+
         return input / fatigue;
     }
+
     public float FatigueModifierDefense(float input, HexWalker walker)
     {
         if (walker == null) return input;
 
-        float fatigue = 1f + (walker.fatigue / 20);
+        float fatigue = 1f + Mathf.Max(0f, walker.fatigue) / 20f;
+
         return input * fatigue;
     }
+
 
     public void ApplyHealthLoss(BattleCombatant source, BattleCombatant target, float mod = 1f)
     { 
@@ -327,21 +344,21 @@ public class BattleEffect
             // 1: % of MAX health
             case 1:
                 {
-                    float maxHP = target.hero.health.health_max;
+                    float maxHP = target.hero.health.health_max * target.hero.heroClass.percentageResistance;
                     return Mathf.Ceil(maxHP * weight);
                 }
 
             // 2: % of CURRENT health
             case 2:
                 {
-                    float currentHP = target.hero.health.health_current;
+                    float currentHP = target.hero.health.health_current * target.hero.heroClass.percentageResistance;
                     return Mathf.Ceil(currentHP * weight);
                 }
 
             // 3: % of MISSING health
             case 3:
                 {
-                    float missingHP = target.hero.health.health_max - target.hero.health.health_current;
+                    float missingHP = (target.hero.health.health_max - target.hero.health.health_current) * target.hero.heroClass.percentageResistance;
                     if (missingHP <= 0f) return 0f;
                     return Mathf.Ceil(missingHP * weight);
                 }
@@ -417,28 +434,28 @@ public class BattleEffect
             default:
             case 0:
                 {
-                    float power = Mathf.Sqrt(GetOffense(source) * weight * 2);
+                    float power = Mathf.Sqrt(GetOffense(source) * weight);
                     return Mathf.Ceil(power * variance);
                 }
 
             // 1: % of MAX health
             case 1:
                 {
-                    float maxHP = target.hero.health.health_max;
+                    float maxHP = target.hero.health.health_max * target.hero.heroClass.percentageResistance;
                     return Mathf.Ceil(maxHP * weight * variance);
                 }
 
             // 2: % of CURRENT health
             case 2:
                 {
-                    float currentHP = target.hero.health.health_current;
+                    float currentHP = target.hero.health.health_current * target.hero.heroClass.percentageResistance;
                     return Mathf.Ceil(currentHP * weight * variance);
                 }
 
             // 3: % of MISSING health
             case 3:
                 {
-                    float missingHP = target.hero.health.health_max - target.hero.health.health_current;
+                    float missingHP = (target.hero.health.health_max - target.hero.health.health_current) * target.hero.heroClass.percentageResistance; ;
                     if (missingHP <= 0f) return 0f;
                     return Mathf.Ceil(missingHP * weight * variance);
                 }
@@ -527,6 +544,7 @@ public class BattleEffect
             else if(index < 1 && currentvalue > 1) // Remove all positive effects, input settings are -1 or 0
                 target.modifiers.SetStat(stat, 1);
         }
+        target.PrintPopUp("Reset", Color.white);
 
         target.Emit(new()
         {

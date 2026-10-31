@@ -624,6 +624,8 @@ public class BattleCombatant : MonoBehaviour
         battleEvent.eventType = Enum_BattleEvent_Type.onDamageTaken;
         battleEvent.owner = this;
 
+        CollectMods();
+
         battleEvent.value = ParseModifiers(Enum_BattleEvent_Modifier.damageIn, battleEvent, battleEvent.value);
         battleEvent.value = battleEvent.source.ParseModifiers(Enum_BattleEvent_Modifier.damageOut, battleEvent, battleEvent.value);
 
@@ -930,22 +932,49 @@ public class BattleCombatant : MonoBehaviour
         CollectMods();
     }
 
-    public void PrintPopUp(string text, Color color, float size = 64)
+    public void PrintPopUp(string text, Color color, float size = 16)
     {
         UI_PopUpTrigger.CreatePopUp(text, color, transform.position, size);
     }
 
     readonly List<Modifier> mods = new();
-    public float ParseModifiers(Enum_BattleEvent_Modifier type, BattleEvent action, float input)
+
+    public float ParseModifiers(
+        Enum_BattleEvent_Modifier type,
+        BattleEvent action,
+        float input)
     {
-        // CollectMods();
         float result = input;
 
+        if (type == Enum_BattleEvent_Modifier.damageIn)
+        {
+            Debug.LogWarning(
+                $"[DAMAGE IN] {name} | " +
+                $"Starting Damage: {input} | " +
+                $"Collected Modifiers: {mods.Count}"
+            );
+        }
+
         foreach (var item in mods)
+        {
+            float before = result;
             result = item.Parse(type, this, action, result);
+
+            if (type == Enum_BattleEvent_Modifier.damageIn)
+            {
+                Debug.Log(
+                    $"[MODIFIER] {item.modifier} | " +
+                    $"Before: {before} | After: {result}"
+                );
+            }
+        }
+
+        if (type == Enum_BattleEvent_Modifier.damageIn)
+            Debug.LogWarning($"[DAMAGE IN RESULT] {result}");
 
         return result;
     }
+
     public int ParseModifiers(Enum_BattleEvent_Modifier type, BattleEvent action, int input)
     {
         CollectMods();
@@ -955,17 +984,26 @@ public class BattleCombatant : MonoBehaviour
 
         return (int)result;
     }
+
     private void CollectMods()
     {
         mods.Clear();
 
+        // Active status conditions
         foreach (var effect in statusEffects)
             mods.AddRange(effect.status.modifiers);
 
-        mods.AddRange(hero.equipment.GetAllMods()); 
+        // Equipment modifiers
+        mods.AddRange(hero.equipment.GetAllMods());
 
-        mods.Sort((a, b) => a.priority.CompareTo(b.priority));
+        // Passive ability modifiers
+        foreach (var passive in hero.passives)
+            mods.AddRange(passive.modifiers);
+
+        mods.Sort((a, b) =>
+            a.priority.CompareTo(b.priority));
     }
+
     public float Initiative()
     {
         CollectMods();
@@ -1115,8 +1153,8 @@ public class BattleCombatant : MonoBehaviour
 
         modifiers.MultiplyStat(stat, weight);
 
-        float printValue = weight - 1f;
-        PrintPopUp($"{printValue:0%} {Attributes.PrintAttributeName(stat)}", Color.white, 48);
+        float printValue = weight - 1f;  
+        PrintPopUp($"{printValue:0%} {Attributes.PrintAttributeShortName(stat)}", Color.white, 8);
 
         PlayAttributeParticle(weight > 1 ? positiveStatChanges : negativeStatChanges ,stat); 
     }

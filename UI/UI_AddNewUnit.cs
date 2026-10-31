@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class UI_AddNewUnit : MonoBehaviour
 {
+    public int max = 6;
+
     private void Awake()
     {
         UI_FullArmyDisplay.OnUpdateUnit += Refresh;
@@ -13,5 +15,5 @@ public class UI_AddNewUnit : MonoBehaviour
         UI_FullArmyDisplay.OnUpdateHero -= Refresh;
     }
 
-    private void Refresh(object _) => gameObject.SetActive(GameManager.Player.units.Count < 8); 
+    private void Refresh(object _) => gameObject.SetActive(GameManager.Player.units.Count < max); 
 }

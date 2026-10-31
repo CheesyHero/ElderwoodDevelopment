@@ -67,9 +67,8 @@ public static class BattleConstants
         return count switch
         {
             4 => 200,
-            5 => 400,
-            6 => 600,
-            7 => 800,
+            5 => 500,
+            6 => 800, 
             _ => -1,
         };
     }
@@ -79,9 +78,9 @@ public static class BattleConstants
         {
             0 => 0,
             1 => 0,
-            2 => 300,
-            3 => 1000,
-            4 => 2000,
+            2 => 400,
+            3 => 1200,
+            4 => 2400,
             _ => -1,
         };
     }
@@ -93,7 +92,7 @@ public static class BattleConstants
         return hero.rank switch
         {
             1 => 600,
-            2 => 1200,
+            2 => 1500,
             _ => -1,
         };
     }

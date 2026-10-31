@@ -29,6 +29,8 @@ public class HeroClass : ScriptableObject
     [Header("Stats")]
     public Attributes baseStats;
     public Attributes statGrowth;
+    [Range(0, 2)]
+    public float percentageResistance = 1f;
     [Header("Weapons")]
     public List<Enum_Equipment_Types> usableEquipment;
     public Arsenal startingEquipment;

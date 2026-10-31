@@ -304,6 +304,31 @@ public class Attributes
             _ => stat.ToString(),
         };
     }
+    public static string PrintAttributeShortName(Enum_HeroAttributes stat)
+    {
+        static string Colorize(string hex, string text)
+            => $"<color=#{hex}>{text}</color>";
+
+        return stat switch
+        {
+            Enum_HeroAttributes.health => Colorize("f03040", "Hea"),
+            Enum_HeroAttributes.mana => Colorize("c051f0", "Man"),
+            Enum_HeroAttributes.power => Colorize("ed463e", "Pow"),
+            Enum_HeroAttributes.armor => Colorize("3967db", "Arm"),
+            Enum_HeroAttributes.magic => Colorize("d028ed", "Mag"),
+            Enum_HeroAttributes.resist => Colorize("7239db", "Res"),
+            Enum_HeroAttributes.speed => Colorize("4cdb39", "Spe"),
+            Enum_HeroAttributes.accuracy => Colorize("44e3bb", "Acc"),
+            Enum_HeroAttributes.evasion => Colorize("36a9d6", "Eva"),
+            Enum_HeroAttributes.shield => Colorize("5189f0", "Shi"),
+            Enum_HeroAttributes.actions => Colorize("f0603c", "Act"),
+            Enum_HeroAttributes.reactions => Colorize("38cdf2", "Rea"),
+            Enum_HeroAttributes.criticalChance => Colorize("fcd34c", "Cri"),
+            Enum_HeroAttributes.criticalDamage => Colorize("fcad4c", "Cri"),
+            Enum_HeroAttributes.potential => Colorize("a3e635", "Pot"),
+            _ => stat.ToString().Substring(0, Mathf.Min(3, stat.ToString().Length)),
+        };
+    }
 
 
     public void SetStat(Enum_HeroAttributes stat, float setting)
