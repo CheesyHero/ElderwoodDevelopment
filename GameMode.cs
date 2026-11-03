@@ -14,14 +14,22 @@ public class GameMode
     {
         Debug.Log("CHECKING WIN CONDITION");
 
+        // alternative player lose condition //
+        if (HexCrawlManager.TurnTimer > 0 && HexCrawlManager.TurnsRemaining <= 0)
+        {  
+            // player loses
+            EnemyArmyManager.Defeat(GameManager.Player);
+        }
+
         foreach(var army in EnemyArmyManager.AllArmies)
         {
+            // Check all participants to see if they still own their home base
             if (army.defeated == false && army.homeBase && army.homeBase.owner != army.team)
-                EnemyArmyManager.Defeat(army);
+                EnemyArmyManager.Defeat(army); // If not, they are eleminated and all their units are removed
         }
 
         var remaining = EnemyArmyManager.Remaining();
-        if (remaining.Count <= 1)
+        if (remaining.Count <= 1) // End the game if only 1 army remains
         {
             HexCrawlManager.SetWinner(remaining[0]);
             TurnManager.EndGame();

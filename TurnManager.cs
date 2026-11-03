@@ -58,18 +58,29 @@ public class TurnManager : StateMachine
             CameraController.MoveToPoint(currentTurn.GetTurnPoint(), false);
         }
     }
-    static void TickTurn()
+static void TickTurn()
+{
+    turnIndex++;
+
+    if (turnIndex >= EnemyArmyManager.Combatants)
     {
-        turnIndex++;
-        if (turnIndex >= EnemyArmyManager.Combatants)
+        turnIndex = 0;
+        Round++;
+    }
+
+    if (Round >= HexCrawlManager.TurnTimer)
+    {
+        HexCrawlManager.CheckWinner();
+
+        // CheckWinner may have already ended the game.
+        if (instance.currentState.StateID != "map_game_over")
         {
-            turnIndex = 0;
-            Round++;
+            // Resolve timeout defeat here, then EndGame().
         }
 
-        if (Round >= HexCrawlManager.TurnTimer)
-            EndGame();
+        return;
     }
+}
     public static void FireEvent(string action)
     {
         OnEventTrigger?.Invoke(action);

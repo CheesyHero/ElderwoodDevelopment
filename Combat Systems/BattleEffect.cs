@@ -252,19 +252,24 @@ public class BattleEffect
         float variance = Random.Range(0.9f, 1.1f);
 
         float offense = GetOffense(source);
-        float defense = GetDefense(target);
+        float defense = GetDefense(target);  
 
         Equalize(ref offense, ref defense);
+
+        if (target.hero.health.shield_current > 1)
+        {
+            float t = Mathf.InverseLerp(2f, 0.5f, offense / Mathf.Max(1f, defense));
+            defense = Mathf.Lerp(defense, defense * 5, t);
+        }
 
         offense = Mathf.Max(0f, offense);
         defense = Mathf.Max(1f, defense);
 
-        float contest = 3;//offense / defense;
+        float contest = 2.4f; // previously offense / defense;
         float basePower = Mathf.Sqrt(Mathf.Max(0f, source.hero.level * weight * offense / defense)) * contest;
 
-        float damage = basePower * variance * mod;
-
-        damage = CheckFatigue(damage, source, target);
+        float damage = basePower * variance * mod; 
+        damage = CheckFatigue(damage, source, target); 
 
         return Mathf.Ceil(Mathf.Max(0f, damage));
     }
@@ -433,9 +438,13 @@ public class BattleEffect
             // 0: Standard healing (existing behavior)
             default:
             case 0:
-                {
-                    float power = Mathf.Sqrt(GetOffense(source) * weight);
-                    return Mathf.Ceil(power * variance);
+                { 
+                    float level = source.hero.level;
+                    float attribute = GetOffense(source);
+                    float varience = randomize ? Random.Range(0.9f, 1.1f) : 1f;
+                    float amount = Mathf.Ceil(Mathf.Pow(level * weight * attribute, 1f / 2f) * varience);
+
+                    return amount;
                 }
 
             // 1: % of MAX health
@@ -484,10 +493,11 @@ public class BattleEffect
         else ShieldByScaling(source, target, mod, randomize); 
     }
     private void ShieldByScaling(BattleCombatant source, BattleCombatant target, float mod = 1f, bool randomize = true)
-    { 
+    {
+        float level = source.hero.level;
         float defense = GetDefense(source);
-        float varience = randomize ? Random.Range(0.9f, 1.1f) : 1f;
-        float amount = Mathf.CeilToInt(Mathf.Sqrt(weight * defense) * varience * mod); 
+        float varience = randomize ? Random.Range(0.9f, 1.1f) : 1f; 
+        float amount = Mathf.Ceil(Mathf.Pow(level * weight * defense, 1f / 3f) * varience * mod);
 
         Debug.Log($"{source.FullTeamName} is shielding <color=cyan><b>{amount}</b></color> to {target.FullTeamName}");
         target.GainShield(new()
