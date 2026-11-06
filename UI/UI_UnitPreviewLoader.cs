@@ -1,24 +1,29 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class UI_UnitPreviewLoader : MonoBehaviour
 {
+    public Image header;
     public TextMeshProUGUI partyCount;
     public TextMeshProUGUI teamTitle;
     protected Unit lastInput = null;
     [SerializeField]
     protected UI_UnitSlot[] slots;
+
     protected virtual void OnEnable()
     {
         slots = GetComponentsInChildren<UI_UnitSlot>(); 
     }
 
-    public void LoadUnit(Unit unit, bool andDisable = true)
+    public virtual void LoadUnit(Unit unit, bool andDisable = true)
     {
         if (unit == null)
         {
             lastInput = null;
             SetActive(false);
+            SetHeaderColor(Color.white);
+
             return;
         }
 
@@ -28,6 +33,7 @@ public class UI_UnitPreviewLoader : MonoBehaviour
         ShowDisplays(unit);
         LoadTitle();
         LoadCount();
+        SetHeaderColor(unit.team.teamColor);
     }
 
     protected void ShowDisplays(Unit unit)
@@ -54,5 +60,10 @@ public class UI_UnitPreviewLoader : MonoBehaviour
     {
         if (partyCount && lastInput != null)
             partyCount.text = $"{lastInput.heroes.Count}/{lastInput.maxPlacements}";
+    }
+
+    public void SetHeaderColor(Color c)
+    {
+        if (header) header.color = c;
     }
 }

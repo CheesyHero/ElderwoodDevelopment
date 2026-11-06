@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events; 
 using UnityEngine.EventSystems; 
@@ -15,6 +16,7 @@ public class UI_EquipmentButton : ComponentLoader, IPointerEnterHandler, IPointe
     [Header("Main")]
     public Button button;
     public Image icon;
+    public TextMeshProUGUI countText;
     protected InventorySlot lastSlot;
     protected Equipment lastItem;
     public static Enum_EquipmentSlot LastSelection { get; private set; }
@@ -62,27 +64,36 @@ public class UI_EquipmentButton : ComponentLoader, IPointerEnterHandler, IPointe
     }
     protected void LoadEmpty()
     {
+        lastSlot = null;
+        lastItem = null;
+
+        SetCount(0);
         LoadEquipment(null, 0);
     }
     protected void PrintItem(Equipment item)
-    { 
+    {
         lastSlot = null;
         lastItem = item;
+
+        SetCount(0);
 
         gameObject.SetActive(true);
         LoadEquipment(item, 1);
     }
     public virtual void PrintSlot(InventorySlot slot)
-    { 
+    {
         lastSlot = slot;
         lastItem = null;
 
+        SetCount(slot.amount);
+
         gameObject.SetActive(true);
+
         Equipment equip = slot.item as Equipment;
         if (equip != null)
             LoadEquipment(equip, slot.amount);
-
-        else SlotText(slot);
+        else
+            SlotText(slot);
     }
     public virtual void SlotText(InventorySlot slot)
     {
@@ -195,5 +206,15 @@ public class UI_EquipmentButton : ComponentLoader, IPointerEnterHandler, IPointe
     public virtual void OnPointerExit(PointerEventData eventData)
     {
         TooltipManager.CloseTooltip();
+    }
+
+    public void SetCount(int setting)
+    {
+        if (!countText) return;
+
+        countText.gameObject.SetActive(setting > 0);
+
+        if (setting > 0)
+            countText.text = $"x{setting}";
     }
 }

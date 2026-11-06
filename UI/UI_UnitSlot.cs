@@ -104,8 +104,8 @@ public class UI_UnitSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         if (leaderDisplay)
         {
             leaderDisplay.gameObject.SetActive(leader);
-            leaderDisplay.color = hero != null && hero.team != null ? 
-                hero.team.teamColor : Color.clear;
+            //leaderDisplay.color = hero != null && hero.team != null ? 
+                //hero.team.teamColor : Color.clear;
         }
 
         foreach (var item in subButtons)
