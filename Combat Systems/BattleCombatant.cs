@@ -166,8 +166,8 @@ public class BattleCombatant : MonoBehaviour
         modifiers = new(1);
 
         hero.health.shield_current = Attributes.shield;
-        actionPoints = Attributes.actions;
-        reactionPoints =Attributes.reactions; 
+        actionPoints = Math.Clamp(Attributes.actions, 0, 4);
+        reactionPoints = Math.Clamp(Attributes.reactions, 0, 4);
 
         //Debug.LogWarning($"Spawned {this} : AP = {actionPoints}({Attributes.actions}) " +
         //    $"| {reactionPoints}({Attributes.reactions})");

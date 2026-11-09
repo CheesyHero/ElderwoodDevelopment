@@ -23,15 +23,30 @@ public class Battle_End_Round : State
 
     public override void Next()
     {
-        //Debug.Log($"{parent.name} has {StateID} checking results. Total Remaining Actions: {BattleUnit.GetActivePoints()}");
+        int remainingAP = BattleUnit.GetActivePoints();
+        bool defeated = AutoBattleManager.CheckWinner();
 
-        if (AutoBattleManager.CheckWinner()) // a team has been defeated
+        Debug.LogWarning(
+            $"END ROUND | AP: {remainingAP} | " +
+            $"Defeated: {defeated} | " +
+            $"TurnOrder: {AutoBattleManager.TurnOrder.Count}"
+        );
+
+        foreach (var hero in BattleCombatant.AllCombatants)
+        {
+            Debug.Log(
+                $"{hero.name} | " +
+                $"Alive: {hero.IsAlive} | " +
+                $"AP: {hero.actionPoints}"
+            );
+        }
+
+        if (defeated)
             parent.ChangeState("battle_end");
-
-        else if (BattleUnit.GetActivePoints() > 0)
+        else if (remainingAP > 0)
             parent.ChangeState("round_start");
-
-        else parent.ChangeState("battle_end");
+        else
+            parent.ChangeState("battle_end");
     }
 
     public override void Update()

@@ -150,18 +150,19 @@ public class BattleEffect
 
     private void ModifyActions(BattleCombatant source, BattleCombatant target)
     {
-        switch(index)
+        int amount = Mathf.RoundToInt(weight);
+
+        switch (index)
         {
-            default: //AP
-                target.actionPoints += Mathf.RoundToInt(weight);
-                target.PrintPopUp($"{Mathf.RoundToInt(weight)} AP", Color.indianRed);
+            default: // AP
+                target.actionPoints = Mathf.Clamp(target.actionPoints + amount, 0, 4);
+                target.PrintPopUp($"{amount} AP", Color.indianRed);
                 break;
 
-            case 1: //RP
-                target.reactionPoints += Mathf.RoundToInt(weight);
-                target.PrintPopUp($"{Mathf.RoundToInt(weight)} RP", Color.cadetBlue);
+            case 1: // RP
+                target.reactionPoints = Mathf.Clamp(target.reactionPoints + amount, 0, 4);
+                target.PrintPopUp($"{amount} RP", Color.cadetBlue);
                 break;
-
         }
     }
 

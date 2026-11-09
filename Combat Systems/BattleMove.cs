@@ -464,10 +464,7 @@ public class BattleMove : Skill
         if (checker == null)
             return new();
 
-        List<BattleCombatant> fullPool = GetPreferedTeam(checker.team); 
-
-        foreach (var item in fullPool)
-            Debug.LogWarning($"[TARGET FULL POOL] {item}");
+        List<BattleCombatant> fullPool = GetPreferedTeam(checker.team);  
 
         if (fullPool == null || fullPool.Count == 0)
             return new();

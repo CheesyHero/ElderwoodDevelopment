@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class UI_UnitPreviewLoader : MonoBehaviour
 {
     public Image header;
+    public bool showMax = true;
     public TextMeshProUGUI partyCount;
     public TextMeshProUGUI teamTitle;
     protected Unit lastInput = null;
@@ -59,7 +60,7 @@ public class UI_UnitPreviewLoader : MonoBehaviour
     public void LoadCount()
     {
         if (partyCount && lastInput != null)
-            partyCount.text = $"{lastInput.heroes.Count}/{lastInput.maxPlacements}";
+            partyCount.text = $"{lastInput.heroes.Count}" + (showMax ? $"/{lastInput.maxPlacements}" : "");
     }
 
     public void SetHeaderColor(Color c)

@@ -82,7 +82,7 @@ public class Unit
         if (leaderIndex < 0 || leaderIndex >= heroes.Count || heroes[leaderIndex] == null)
             return $"{team} : No Leader";
 
-        return $"{team} : {heroes[leaderIndex].characterName}";
+        return $"{heroes[leaderIndex].characterName}";
     }
     public void Refresh(float percent, bool mana)
     {
