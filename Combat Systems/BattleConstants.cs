@@ -92,7 +92,7 @@ public static class BattleConstants
         return hero.rank switch
         {
             1 => 800,
-            2 => 2000,
+            2 => 2400,
             _ => -1,
         };
     }

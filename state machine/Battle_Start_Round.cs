@@ -22,11 +22,10 @@ public class Battle_Start_Round : State
 
     public override void Next()
     {
-        //Debug.Log($"{parent.name} has {StateID} state going to next...");
         if (AutoBattleManager.TurnOrder.Count > 0)
             parent.ChangeState("turn_start");
 
-        else parent.ChangeState("battle_end");
+        else parent.ChangeState("round_end");
     }
 
     public override void Update()

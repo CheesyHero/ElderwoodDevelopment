@@ -142,19 +142,29 @@ public class AutoBattleManager : StateMachine
         Debug.LogWarning("BATTLE ENDED");
 
         // Makes heroes leave accordingly
-    } 
+    }
     public static void SetNextTurn()
     {
-        int failsafe = 0; 
-        PopNextTurn();
-        while (currentTurn.hero.health.IsDead && failsafe < 20)
+        while (TurnOrder.Count > 0)
         {
-            PopNextTurn();
-            failsafe++;
+            AdjustInitiative();
+
+            currentTurn = TurnOrder[0];
+            TurnOrder.RemoveAt(0);
+            View();
+
+            if (!currentTurn.IsAlive)
+                continue;
+
+            currentTurn.NotifyTurnStart();
+            Manager.Next();
+            return;
         }
 
-        Manager.Next();
+        currentTurn = null;
+        Manager.ChangeState("round_end");
     }
+
     private static void PopNextTurn()
     { 
         if(TurnOrder.Count > 0)
