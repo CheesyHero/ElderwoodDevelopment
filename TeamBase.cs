@@ -85,7 +85,7 @@ public class TeamBase : HexTile
                 Instantiate(CaptureFX, transform.position, transform.rotation, transform);
 
             if (army == GameManager.Player)
-                DialoguePrinter.StartDialogue("first capture");
+                DialoguePrinter.StartDialogue("first capture 1");
         }
     }
 

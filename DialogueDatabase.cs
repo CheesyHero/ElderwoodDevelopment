@@ -9,15 +9,6 @@ public struct DialoguePacket
 {
     public string title;
 
-    // Conditional dialogue
-    public string skipFlag;
-    public string skipPointer;
-    public string requiredFlag;
-    public string failPointer;
-
-    // Commands
-    public string commandStart;
-
     // Actor and content
     public string actor;
     public bool leftPosition;
@@ -26,6 +17,19 @@ public struct DialoguePacket
     // Dialogue options
     public string optionA, pointerA, commandEndA;
     public string optionB, pointerB, commandEndB;
+
+    // Completion flags
+    public string completeFlag;
+    public string flagType;
+
+    // Conditional dialogue
+    public string skipFlag;
+    public string skipPointer;
+    public string requiredFlag;
+    public string failPointer;
+
+    // Commands
+    public string commandStart;
 }
 
 public static class DialogueDatabase
@@ -33,7 +37,6 @@ public static class DialogueDatabase
     private static Dictionary<string, DialoguePacket> database;
 
     private const string csvPath = "Dialogue/dialogue";
-
 
     public static DialoguePacket PullConversation(string title)
     {
@@ -45,27 +48,20 @@ public static class DialogueDatabase
 
         title = title.Trim().ToLowerInvariant();
 
-        // Prevent circular dialogue redirects.
         HashSet<string> visited = new HashSet<string>();
-
         return ResolveDialogue(title, visited);
     }
 
-    private static DialoguePacket ResolveDialogue(
-        string title,
-        HashSet<string> visited)
+    private static DialoguePacket ResolveDialogue(string title, HashSet<string> visited)
     {
         if (string.IsNullOrWhiteSpace(title))
             return default;
 
         title = title.Trim().ToLowerInvariant();
 
-        // Detect circular redirects.
         if (!visited.Add(title))
         {
-            Debug.LogWarning(
-                $"[Dialogue] Circular redirect detected: {title}");
-
+            Debug.LogWarning($"[Dialogue] Circular redirect detected: {title}");
             return default;
         }
 
@@ -76,7 +72,7 @@ public static class DialogueDatabase
         }
 
         // SKIP FLAG
-        // If the flag exists, this dialogue is locked out.
+        // Redirect if the skip flag already exists.
         if (!string.IsNullOrWhiteSpace(packet.skipFlag))
         {
             if (FlagManager.ContainsFlag(packet.skipFlag))
@@ -89,7 +85,7 @@ public static class DialogueDatabase
         }
 
         // REQUIRED FLAG
-        // The dialogue can only play if this flag exists.
+        // Redirect if the required flag doesn't exist.
         if (!string.IsNullOrWhiteSpace(packet.requiredFlag))
         {
             if (!FlagManager.ContainsFlag(packet.requiredFlag))
@@ -101,10 +97,8 @@ public static class DialogueDatabase
             }
         }
 
-        // All conditions passed.
         return packet;
     }
-
 
     public static void LoadDatabase()
     {
@@ -120,15 +114,13 @@ public static class DialogueDatabase
 
         List<List<string>> rows = ParseCSV(csv.text);
 
-        // Skip header row.
         for (int i = 1; i < rows.Count; i++)
         {
             List<string> row = rows[i];
 
-            if (row.Count < 15)
+            if (row.Count < 17)
             {
-                Debug.LogWarning(
-                    $"Dialogue row {i + 1} has fewer than 15 columns.");
+                Debug.LogWarning($"Dialogue row {i + 1} has fewer than 17 columns.");
                 continue;
             }
 
@@ -141,30 +133,33 @@ public static class DialogueDatabase
             {
                 title = title,
 
-                // Conditional dialogue
-                skipFlag = row[1].Trim().ToLowerInvariant(),
-                skipPointer = row[2].Trim().ToLowerInvariant(),
-                requiredFlag = row[3].Trim().ToLowerInvariant(),
-                failPointer = row[4].Trim().ToLowerInvariant(),
-
-                // Commands
-                commandStart = row[5].Trim(),
-
                 // Actor and content
-                actor = row[6].Trim().ToLowerInvariant(),
-                leftPosition = row[7].Trim().Equals(
-                    "left", StringComparison.OrdinalIgnoreCase),
-                content = row[8],
+                actor = row[1].Trim().ToLowerInvariant(),
+                leftPosition = row[2].Trim().Equals("left", StringComparison.OrdinalIgnoreCase),
+                content = row[3],
 
                 // Option A
-                optionA = row[9],
-                pointerA = row[10].Trim().ToLowerInvariant(),
-                commandEndA = row[11].Trim(),
+                optionA = row[4],
+                pointerA = row[5].Trim().ToLowerInvariant(),
 
                 // Option B
-                optionB = row[12],
-                pointerB = row[13].Trim().ToLowerInvariant(),
-                commandEndB = row[14].Trim()
+                optionB = row[6],
+                pointerB = row[7].Trim().ToLowerInvariant(),
+
+                // Completion flags
+                completeFlag = row[8].Trim(),
+                flagType = row[9].Trim().ToLowerInvariant(),
+
+                // Conditional dialogue
+                skipFlag = row[10].Trim(),
+                skipPointer = row[11].Trim().ToLowerInvariant(),
+                requiredFlag = row[12].Trim(),
+                failPointer = row[13].Trim().ToLowerInvariant(),
+
+                // Commands
+                commandStart = row[14].Trim(),
+                commandEndA = row[15].Trim(),
+                commandEndB = row[16].Trim()
             };
 
             if (database.ContainsKey(title))
@@ -177,6 +172,25 @@ public static class DialogueDatabase
         }
 
         Debug.Log($"Loaded {database.Count} dialogue packets.");
+    }
+
+    // Save the completion flag associated with a dialogue packet.
+    public static void SaveCompletionFlag(DialoguePacket packet)
+    {
+        if (string.IsNullOrWhiteSpace(packet.completeFlag))
+            return;
+
+        if (string.IsNullOrWhiteSpace(packet.flagType) || packet.flagType == "none")
+            return;
+
+        if (!Enum.TryParse(packet.flagType, true, out FlagType type) ||
+            !Enum.IsDefined(typeof(FlagType), type))
+        {
+            Debug.LogWarning($"[Dialogue] Invalid flag type: {packet.flagType}");
+            return;
+        }
+
+        FlagManager.AddFlag(packet.completeFlag, type);
     }
 
     private static List<List<string>> ParseCSV(string csv)
@@ -193,8 +207,7 @@ public static class DialogueDatabase
 
             if (c == '"')
             {
-                if (inQuotes && i + 1 < csv.Length &&
-                    csv[i + 1] == '"')
+                if (inQuotes && i + 1 < csv.Length && csv[i + 1] == '"')
                 {
                     field.Append('"');
                     i++;
@@ -211,8 +224,7 @@ public static class DialogueDatabase
             }
             else if ((c == '\n' || c == '\r') && !inQuotes)
             {
-                if (c == '\r' && i + 1 < csv.Length &&
-                    csv[i + 1] == '\n')
+                if (c == '\r' && i + 1 < csv.Length && csv[i + 1] == '\n')
                     i++;
 
                 row.Add(field.ToString());

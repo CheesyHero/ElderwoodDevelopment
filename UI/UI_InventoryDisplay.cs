@@ -14,14 +14,22 @@ public class UI_InventoryDisplay : ComponentLoader
 
     private void Awake()
     {
-        // Include inactive buttons so they can be reused.
         buttons = GetComponentsInChildren<UI_EquipmentButton>(true);
 
-        UI_FullArmyDisplay.OnUpdateHero += PassObject;
-        UI_EquipmentButton.OnUpdatedSelection += PassAndFilterPlayerInventory;
+        // Inventory buttons should always use the inventory slot type.
+        foreach (UI_EquipmentButton button in buttons)
+            button.slot = Enum_EquipmentSlot.inventory;
     }
 
-    private void OnDestroy()
+    private void OnEnable()
+    {
+        UI_FullArmyDisplay.OnUpdateHero += PassObject;
+        UI_EquipmentButton.OnUpdatedSelection += PassAndFilterPlayerInventory;
+
+        RefreshInventory();
+    }
+
+    private void OnDisable()
     {
         UI_FullArmyDisplay.OnUpdateHero -= PassObject;
         UI_EquipmentButton.OnUpdatedSelection -= PassAndFilterPlayerInventory;
@@ -75,29 +83,22 @@ public class UI_InventoryDisplay : ComponentLoader
         return Filter(ledger, filter);
     }
 
-    public InventorySlot[] Filter(
-        InventorySlot[] list,
-        Enum_InventoryFilterMode filter)
+    public InventorySlot[] Filter(InventorySlot[] list, Enum_InventoryFilterMode filter)
     {
         List<InventorySlot> finds = new();
 
+        if (list == null)
+            return finds.ToArray();
+
         foreach (InventorySlot slot in list)
         {
-            if (slot == null || slot.item == null)
+            if (slot == null || slot.item == null || slot.amount <= 0)
                 continue;
 
             if (!CheckAgainstFilter(slot, filter))
                 continue;
 
-            // Full inventory ignores equipment restrictions.
-            if (filter == Enum_InventoryFilterMode.none)
-            {
-                finds.Add(slot);
-                continue;
-            }
-
-            // Equipment selections require a compatible hero.
-            if (FilterCurrentHero(slot))
+            if (filter == Enum_InventoryFilterMode.none || FilterCurrentHero(slot))
                 finds.Add(slot);
         }
 
@@ -114,34 +115,34 @@ public class UI_InventoryDisplay : ComponentLoader
         return hero.CanUseEquipment(equipment);
     }
 
-    public bool CheckAgainstFilter(
-        InventorySlot slot,
-        Enum_InventoryFilterMode filter)
+    public bool CheckAgainstFilter(InventorySlot slot, Enum_InventoryFilterMode filter)
     {
         return filter switch
         {
-            Enum_InventoryFilterMode.weapons =>
-                slot.item is Weapon,
-
-            Enum_InventoryFilterMode.armor =>
-                slot.item is Armor,
-
-            Enum_InventoryFilterMode.accessories =>
-                slot.item is Equipment
+            Enum_InventoryFilterMode.weapons => slot.item is Weapon,
+            Enum_InventoryFilterMode.armor => slot.item is Armor,
+            Enum_InventoryFilterMode.accessories => slot.item is Equipment
                 && slot.item is not Weapon
                 && slot.item is not Armor,
-
             _ => true
         };
     }
 
     public void PrintLedger(InventorySlot[] items)
     {
+        if (buttons == null)
+            return;
+
         for (int i = 0; i < buttons.Length; i++)
         {
             UI_EquipmentButton button = buttons[i];
 
-            if (i < items.Length)
+            if (button == null)
+                continue;
+
+            bool hasItem = i < items.Length;
+
+            if (hasItem)
             {
                 button.gameObject.SetActive(true);
                 button.LoadSlotDisplay(items[i]);
@@ -155,7 +156,13 @@ public class UI_InventoryDisplay : ComponentLoader
 
     public void HideButtons()
     {
+        if (buttons == null)
+            return;
+
         foreach (UI_EquipmentButton button in buttons)
-            button.gameObject.SetActive(false);
+        {
+            if (button != null)
+                button.gameObject.SetActive(false);
+        }
     }
 }

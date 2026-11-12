@@ -72,6 +72,8 @@ public class Health
         if (e == null || e.value <= 0f) return;
         if (shield_current <= 0f) return;
 
+        e.value = MitigateShieldDamage(e); 
+
         float absorbed = Mathf.Min(shield_current, e.value);
         shield_current -= absorbed;
 
@@ -85,16 +87,37 @@ public class Health
         Clamp();
     }
 
-    private float GetShieldMitigationStat(BattleEvent e)
+    private float MitigateShieldDamage(BattleEvent e)
     {
-        if (e == null || e.owner == null || e.owner.hero == null || e.move == null) return 1f;
+        BattleCombatant self = null;
+        foreach (var combatant in e.targets)
+        {
+            if (combatant.hero.health == this)
+            {
+                self = combatant;
+                break;
+            }
+        }
 
-        if (e.move.damageType == DamageTypes.magical)
-            return e.owner.Attributes.resist;
+        if (self == null || e.move == null)
+            return e.value;
 
-        else return e.owner.Attributes.armor;
+        DamageTypes damageType = e.move.damageType;
+        float resistValue = 0; // pure damage ignores armor and resist
+
+        if (damageType == DamageTypes.physical)
+            resistValue = self.Attributes.armor; // need to get armor 
+
+        else if (damageType == DamageTypes.magical)
+            resistValue = self.Attributes.resist; // need to get resist 
+
+        float shieldPortion = Mathf.Min(e.value, shield_current);
+        float overflow = Mathf.Max(0, e.value - shield_current);
+
+        float mitigatedShield = Mathf.Max(shieldPortion * 0.5f, shieldPortion - resistValue);
+
+        return mitigatedShield + overflow;
     }
-
 
     public void DrainMana(BattleEvent input)
     {

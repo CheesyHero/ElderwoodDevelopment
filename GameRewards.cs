@@ -71,13 +71,110 @@ public class GameRewards : ScriptableObject
     public Item[] Get3RandomItems(int? seed = null)
     {
         var rng = CreateRng(seed);
-        return Get3RandomItems(rng);
-    } 
+        return Generate3RandomItems(rng);
+    }
+
     public Item[] Get3RareRandomItems(int? seed = null)
     {
         var rng = CreateRng(seed);
-        return Get3RareRandomItems(rng);
-    } 
+        return Generate3RareRandomItems(rng);
+    }
+
+    private Item[] Generate3RandomItems(System.Random rng)
+    {
+        var validTypes = GetUsableEquipmentTypes();
+
+        var common = FilterUsableItems(itemsCommon, validTypes);
+        var uncommon = FilterUsableItems(itemsUncommon, validTypes);
+        var rare = FilterUsableItems(itemsRare, validTypes);
+        var mythic = FilterUsableItems(itemsMythic, validTypes);
+
+        var picked = new HashSet<Item>();
+        var results = new List<Item>(3);
+
+        int guard = 0;
+
+        while (results.Count < 3 && guard++ < 300)
+        {
+            var pool = RollRegularPool(
+                rng, common, uncommon, rare, mythic);
+
+            if (TryPickDistinct(rng, pool, picked, out Item item))
+                results.Add(item);
+        }
+
+        return results.ToArray();
+    }
+
+    private Item[] Generate3RareRandomItems(System.Random rng)
+    {
+        var validTypes = GetUsableEquipmentTypes();
+
+        var rare = FilterUsableItems(itemsRare, validTypes);
+        var mythic = FilterUsableItems(itemsMythic, validTypes);
+
+        var picked = new HashSet<Item>();
+        var results = new List<Item>(3);
+
+        float rareRollChance =
+            ComputeRareRollChance(rareChance, mythicChance);
+
+        int guard = 0;
+
+        while (results.Count < 3 && guard++ < 300)
+        {
+            bool rollRare = rng.NextDouble() < rareRollChance;
+            var pool = rollRare ? rare : mythic;
+
+            if (TryPickDistinct(rng, pool, picked, out Item item))
+                results.Add(item);
+        }
+
+        return results.ToArray();
+    }
+
+    private Item[] FilterUsableItems(RewardPackage[] packages, HashSet<Enum_Equipment_Types> validTypes)
+    {
+        var items = new HashSet<Item>();
+
+        if (packages == null)
+            return Array.Empty<Item>();
+
+        foreach (var package in packages)
+        {
+            if (package == null || package.itemPool == null)
+                continue;
+
+            foreach (Equipment item in package.itemPool)
+            {
+                if (item == null)
+                    continue;
+
+                if (validTypes.Contains(item.equipmentType))
+                    items.Add(item);
+            }
+        }
+
+        return new List<Item>(items).ToArray();
+    }
+    private HashSet<Enum_Equipment_Types> GetUsableEquipmentTypes()
+    {
+        var validTypes = new HashSet<Enum_Equipment_Types>();
+
+        foreach (var hero in GameManager.Player.party)
+        {
+            if (hero == null || hero.heroClass == null)
+                continue;
+
+            foreach (var type in hero.heroClass.usableEquipment)
+            {
+                validTypes.Add(type);
+            }
+        }
+
+        return validTypes;
+    }
+
     private HeroClass[] Get3RandomHeroes(System.Random rng)
     {
         var picked = new HashSet<HeroClass>();

@@ -4,7 +4,7 @@ using TMPro;
 
 public class DialogueOptionLoader : MonoBehaviour
 {
-    public Button buttonA, buttonB;
+    public Button buttonA, buttonB, skipB;
     public TextMeshProUGUI textA, textB;
 
     public void LoadDialoguePacket(DialoguePacket input)
@@ -17,6 +17,7 @@ public class DialogueOptionLoader : MonoBehaviour
 
         buttonA.gameObject.SetActive(hasOptionA);
         buttonB.gameObject.SetActive(hasOptionB);
+        skipB.gameObject.SetActive(!hasOptionB);
 
         textA.text = hasOptionA ? input.optionA : "";
         textB.text = hasOptionB ? input.optionB : "";

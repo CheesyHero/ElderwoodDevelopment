@@ -334,7 +334,7 @@ public class BattleCombatant : MonoBehaviour
 
         else
         {  
-            UI_PopUpTrigger.RigidPopUp(action.move ? action.move.skillName : "no move", transform.position, 64);
+            UI_PopUpTrigger.RigidPopUp(action.move ? action.move.skillName : "no move", transform.position, 32);
             Emit(action);
              
             InitiateMove(action);

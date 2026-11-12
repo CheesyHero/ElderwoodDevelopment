@@ -25,6 +25,9 @@ public class UI_EquipmentButton : ComponentLoader, IPointerEnterHandler, IPointe
 
     private void Start()
     {
+        if (slot == Enum_EquipmentSlot.inventory)
+            return;
+
         UI_FullArmyDisplay.OnUpdateHero += PassObject;
         UI_UnitSlot.OnHoverPreviewEnter += PassObject;
         UI_UnitSlot.OnHoverPreviewExit += ReturnToLast;
@@ -35,6 +38,10 @@ public class UI_EquipmentButton : ComponentLoader, IPointerEnterHandler, IPointe
         UI_FullArmyDisplay.OnUpdateHero -= PassObject;
         UI_UnitSlot.OnHoverPreviewEnter -= PassObject;
         UI_UnitSlot.OnHoverPreviewExit -= ReturnToLast;
+    }
+    private void OnDisable()
+    {
+        TooltipManager.CloseTooltip();
     }
 
     public override void PassObject(object obj)
@@ -86,14 +93,19 @@ public class UI_EquipmentButton : ComponentLoader, IPointerEnterHandler, IPointe
         lastItem = null;
 
         SetCount(slot.amount);
-
         gameObject.SetActive(true);
 
-        Equipment equip = slot.item as Equipment;
-        if (equip != null)
+        if (slot.item is Equipment equip)
+        {
             LoadEquipment(equip, slot.amount);
+        }
         else
+        {
             SlotText(slot);
+            SetIcon(slot.item);
+            SetImageColor(BattleConstants.GetBadgeColor(RarityOptions.Common));
+            SetButtonInteractable(UI_FullArmyDisplay.CurrentHero != null);
+        }
     }
     public virtual void SlotText(InventorySlot slot)
     {
@@ -101,7 +113,8 @@ public class UI_EquipmentButton : ComponentLoader, IPointerEnterHandler, IPointe
     }
     public virtual void EquipmentPrint(Equipment equip, int quantity)
     {
-        SetText($"{equip.itemName} - {RandomNameGenerator.Capitalize(equip.equipmentType.ToString())} : {quantity}");
+        SetText($"{equip.itemName} - {RandomNameGenerator.Capitalize(equip.equipmentType.ToString())}");
+        SetCount(quantity);
     }
     public virtual void NothingPrint()
     {
@@ -163,12 +176,19 @@ public class UI_EquipmentButton : ComponentLoader, IPointerEnterHandler, IPointe
     }
     public void ChangeEquipment()
     {
-        if (lastSlot == null) return;
+        if (lastSlot == null || UI_FullArmyDisplay.CurrentHero == null)
+            return;
 
-        Debug.Log($"{name} : Sending equipment change request = " +
-            $"{(lastSlot != null && lastSlot.item ? lastSlot.item.name : "null")}");
-        UI_FullArmyDisplay.ChangeEquipment(LastSelection, lastSlot.item as Equipment);
-    } 
+        if (LastSelection == Enum_EquipmentSlot.inventory)
+            return;
+
+        if (lastSlot.item is not Equipment equip)
+            return;
+
+        Debug.Log($"{name}: Sending equipment change request = {equip.name}");
+        UI_FullArmyDisplay.ChangeEquipment(LastSelection, equip);
+    }
+
     public void SetButtonInteractable(bool setting)
     {
         if (!button) return;
@@ -176,31 +196,24 @@ public class UI_EquipmentButton : ComponentLoader, IPointerEnterHandler, IPointe
         button.interactable = setting;
     }
     public void SetIcon(Item item)
-    { 
+    {
         if (!icon) return;
 
-        if (!item)
-        {
-            icon.color = Color.clear; 
-        }
-
-        else
-        {
-            icon.sprite = item.icon;
-            icon.color = item.color; 
-        }
+        icon.sprite = item ? item.icon : null;
+        icon.color = item ? item.color : Color.clear;
     }
 
     public virtual void OnPointerEnter(PointerEventData eventData)
     {
-        // if (UI_FullArmyDisplay.CurrentHero == null) return;
-        if (lastItem == null && lastSlot == null) return;
+        Equipment equip = lastItem;
 
-        Equipment i = lastItem;
-        if (!i) i = lastSlot.item as Equipment;
+        if (!equip && lastSlot != null)
+            equip = lastSlot.item as Equipment;
 
-        if (!i) return;
-        else TooltipManager.OpenTooltip(i.PrintToolTip(true), transform.position + tooltipOffset);
+        if (!equip)
+            return;
+
+        TooltipManager.OpenTooltip(equip.PrintToolTip(true), transform.position + tooltipOffset);
     }
 
     public virtual void OnPointerExit(PointerEventData eventData)
@@ -212,9 +225,7 @@ public class UI_EquipmentButton : ComponentLoader, IPointerEnterHandler, IPointe
     {
         if (!countText) return;
 
-        countText.gameObject.SetActive(setting > 0);
-
-        if (setting > 0)
-            countText.text = $"x{setting}";
+        countText.gameObject.SetActive(setting > 0 && slot == Enum_EquipmentSlot.inventory); 
+        countText.text = $"x{setting}";
     }
 }

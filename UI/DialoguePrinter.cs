@@ -291,8 +291,19 @@ public class DialoguePrinter : MonoBehaviour
 
     public void SaveFlag()
     {
-        if (string.IsNullOrWhiteSpace(currentPacket.title)) return; 
-        FlagManager.AddFlag(currentPacket.title, FlagType.permanant);
+        if (string.IsNullOrWhiteSpace(currentPacket.completeFlag) ||
+            string.IsNullOrWhiteSpace(currentPacket.completeFlag) ||
+            string.IsNullOrWhiteSpace(currentPacket.flagType) ||
+            currentPacket.flagType == "none") return;
+
+        var type = currentPacket.flagType switch
+        {
+            "session" => FlagType.session,
+            "temporary" => FlagType.temporary,
+            _ => FlagType.permanant,
+        };
+
+        FlagManager.AddFlag(currentPacket.completeFlag, type);
     }
 
     public void SetBackground(bool fadeIn)

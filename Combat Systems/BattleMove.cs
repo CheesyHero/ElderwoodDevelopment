@@ -134,7 +134,7 @@ public class BattleMove : Skill
                 effect.Parse(CreateEvent(attacker, defender), critical); 
 
             if (critical != 1)
-                UI_PopUpTrigger.CreatePopUp("CRIT!", Color.yellowNice, defender.transform.position, 48);
+                UI_PopUpTrigger.CreatePopUp("CRIT!", Color.yellowNice, defender.transform.position, 32);
 
             attacker.GainMana(10, currentAction);
         }
