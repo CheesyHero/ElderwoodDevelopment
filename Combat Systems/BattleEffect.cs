@@ -255,18 +255,12 @@ public class BattleEffect
         float offense = GetOffense(source);
         float defense = GetDefense(target);  
 
-        Equalize(ref offense, ref defense);
-
-        if (target.hero.health.shield_current > 1)
-        {
-            float t = Mathf.InverseLerp(2f, 0.5f, offense / Mathf.Max(1f, defense));
-            defense = Mathf.Lerp(defense, defense * 5, t);
-        }
+        Equalize(ref offense, ref defense); 
 
         offense = Mathf.Max(0f, offense);
         defense = Mathf.Max(1f, defense);
 
-        float contest = 2.4f; // previously offense / defense;
+        float contest = 3f; // previously offense / defense;
         float basePower = Mathf.Sqrt(Mathf.Max(0f, source.hero.level * weight * offense / defense)) * contest;
 
         float damage = basePower * variance * mod; 

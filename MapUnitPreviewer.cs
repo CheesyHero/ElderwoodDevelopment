@@ -16,7 +16,11 @@ public class MapUnitPreviewer : MonoBehaviour
         manager = this;
 
         PlayerSelection.OnNewHighlight += LoadPreview;
-    } 
+    }
+    private void Start()
+    {
+        Close();
+    }
 
     private void OnDestroy()
     {
