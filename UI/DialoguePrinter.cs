@@ -32,20 +32,29 @@ public class DialoguePrinter : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Debug.LogWarning("Duplicate DialoguePrinter detected.");
-            Destroy(gameObject);
-            return;
-        }
+        //if (Instance != null && Instance != this)
+        //{
+        //   Debug.LogWarning("Duplicate DialoguePrinter detected.");
+        //    Destroy(gameObject);
+        //    return;
+        //}
 
         Instance = this;
-    } 
+
+        // Initialize dialogue state.
+        hasDialogue = false;
+        currentPacket = default;
+        routine = null;
+
+        SetAnimatorBool("talking", false);
+        SetAnimatorBool("active", false);
+    }
+
     private void OnDestroy()
     {
         if (Instance == this)
             Instance = null;
-    } 
+    }
 
     public static void StartDialogue(string title)
     {

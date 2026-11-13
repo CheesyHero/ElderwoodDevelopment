@@ -492,7 +492,7 @@ public class BattleEffect
         float level = source.hero.level;
         float defense = GetDefense(source);
         float varience = randomize ? Random.Range(0.9f, 1.1f) : 1f; 
-        float amount = Mathf.Ceil(Mathf.Pow(level * weight * defense, 1f / 2f) * varience * mod);
+        float amount = Mathf.Ceil(Mathf.Pow(level * weight * defense, 1f / 3f) * varience * mod) * 2f;
 
         Debug.Log($"{source.FullTeamName} is shielding <color=cyan><b>{amount}</b></color> to {target.FullTeamName}");
         target.GainShield(new()

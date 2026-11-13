@@ -14,8 +14,6 @@ public class CanvasGroupFader : MonoBehaviour
     {
         if (canvasGroup == null)
             canvasGroup = GetComponent<CanvasGroup>();
-
-        SetImmediate(false);
     }
 
     public void Fade(bool fadeIn, Action onComplete = null)
@@ -32,10 +30,7 @@ public class CanvasGroupFader : MonoBehaviour
         canvasGroup.blocksRaycasts = fadeIn;
         canvasGroup.interactable = fadeIn;
 
-        fadeRoutine = StartCoroutine(FadeRoutine(
-            fadeIn ? 1f : 0f,
-            onComplete
-        ));
+        fadeRoutine = StartCoroutine(FadeRoutine(fadeIn ? 1f : 0f, onComplete ));
     }
 
     private IEnumerator FadeRoutine(

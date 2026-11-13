@@ -106,4 +106,9 @@ public class UI_SkillSlotOption : ComponentLoader
         desiredIndex = index;
         UI_ChangeMoveFilters.SetCurrentPlan(lastInput);
     } 
+
+    public void BUTTON_Dialogue(string title)
+    {
+        DialoguePrinter.StartDialogue(title);
+    }
 }

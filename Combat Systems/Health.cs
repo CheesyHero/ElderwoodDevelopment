@@ -104,17 +104,29 @@ public class Health
 
         DamageTypes damageType = e.move.damageType;
         float resistValue = 0; // pure damage ignores armor and resist
+        float offensiveValue = 0;
 
         if (damageType == DamageTypes.physical)
+        {
             resistValue = self.Attributes.armor; // need to get armor 
+            offensiveValue = e.source.Attributes.power;
+        }
 
         else if (damageType == DamageTypes.magical)
+        {
             resistValue = self.Attributes.resist; // need to get resist 
+            offensiveValue = e.source.Attributes.magic;
+        }
+
+        if (offensiveValue >= resistValue)
+            return e.value;
+
+        float difference = resistValue - offensiveValue;
 
         float shieldPortion = Mathf.Min(e.value, shield_current);
         float overflow = Mathf.Max(0, e.value - shield_current);
 
-        float mitigatedShield = Mathf.Max(shieldPortion * 0.5f, shieldPortion - resistValue);
+        float mitigatedShield = Mathf.Max(shieldPortion * 0.5f, shieldPortion - difference);
 
         return mitigatedShield + overflow;
     }

@@ -1,6 +1,9 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 public class UI_FullArmyDisplay : MonoBehaviour
 { 
@@ -26,7 +29,19 @@ public class UI_FullArmyDisplay : MonoBehaviour
     private void Start()
     {
         LoadPlayerArmy();
+        StartCoroutine(Wait1Frame());
     }
+    IEnumerator Wait1Frame()
+    {
+        yield return new WaitForEndOfFrame();
+
+        if (FlagManager.ContainsFlag("tavern complete") == false)
+            DialoguePrinter.StartDialogue("tavern intro 1");
+
+        else
+            PlayRandomIntroduction();
+    }
+
     private void Reload(Hero _) => LoadPlayerArmy(); 
     private void Reload(Unit _) => LoadPlayerArmy(); 
     public void LoadPlayerArmy()
@@ -107,9 +122,9 @@ public class UI_FullArmyDisplay : MonoBehaviour
 
             if (!isReplacingFilledSlot && !nextAlreadyInCurrentUnit)
             {
-               BannerArray.PrintReport(
-                    $"Cannot add {next} to CurrentUnit: unit is at max capacity ({CurrentUnit.maxPlacements})."
-                );
+               BannerArray.PrintReport( $"Cannot add {next} to CurrentUnit: unit is at max ({CurrentUnit.maxPlacements})." );
+
+                DialoguePrinter.StartDialogue("unit max limit 1");
                 return;
             }
         }
@@ -289,6 +304,17 @@ public class UI_FullArmyDisplay : MonoBehaviour
     {
         OnUpdateHero?.Invoke(CurrentHero);
         OnUpdateUnit?.Invoke(CurrentUnit);
+    }
+    private void PlayRandomIntroduction()
+    {
+        int range = 8;
+        int randomIndex = UnityEngine.Random.Range(1, range + 1);
+
+        string dialogueTitle = $"tavern return {randomIndex}";
+
+        Debug.Log($"Loading random dialogue: {dialogueTitle}");
+
+        DialoguePrinter.StartDialogue(dialogueTitle);
     }
 }
 

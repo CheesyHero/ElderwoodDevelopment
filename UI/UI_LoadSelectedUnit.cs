@@ -32,5 +32,12 @@ public class UI_LoadSelectedUnit : UI_UnitPreviewLoader
         LoadTitle();
         LoadCount();
         SetHeaderColor(unit.team.teamColor);
+
+        DialoguePrinter.StartDialogue("unit management 1");
+    }
+
+    public void StartDialogue(string title)
+    {
+        DialoguePrinter.StartDialogue(title);
     }
 }

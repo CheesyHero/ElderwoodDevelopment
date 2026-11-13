@@ -14,6 +14,9 @@ public class Battle_Open_State : State
 
     public override void Enter()
     {
+        // Clean up in case the battles started too close together
+        AutoBattleManager.CleanUp();
+
         //Debug.Log($"{parent.name} entered {StateID} state"); 
         //AutoBattleManager.LaunchEvent(StateID);
         clock = Time.time;
