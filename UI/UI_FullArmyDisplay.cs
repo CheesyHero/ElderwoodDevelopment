@@ -33,7 +33,7 @@ public class UI_FullArmyDisplay : MonoBehaviour
     }
     IEnumerator Wait1Frame()
     {
-        yield return new WaitForEndOfFrame();
+        yield return new WaitForSeconds(1f);
 
         if (FlagManager.ContainsFlag("tavern complete") == false)
             DialoguePrinter.StartDialogue("tavern intro 1");
@@ -305,14 +305,34 @@ public class UI_FullArmyDisplay : MonoBehaviour
         OnUpdateHero?.Invoke(CurrentHero);
         OnUpdateUnit?.Invoke(CurrentUnit);
     }
+
+    private static readonly HashSet<int> usedIntroductions = new();
     private void PlayRandomIntroduction()
     {
-        int range = 8;
-        int randomIndex = UnityEngine.Random.Range(1, range + 1);
+        int range = 21;
+
+        // Reset once every dialogue has been played.
+        if (usedIntroductions.Count >= range - 5)
+            usedIntroductions.Clear();
+
+        int randomIndex;
+
+        // Keep rolling until we find an unused dialogue.
+        do
+        {
+            randomIndex = UnityEngine.Random.Range(1, range + 1);
+        }
+        while (usedIntroductions.Contains(randomIndex));
+
+        // Mark this dialogue as used.
+        usedIntroductions.Add(randomIndex);
 
         string dialogueTitle = $"tavern return {randomIndex}";
 
-        Debug.Log($"Loading random dialogue: {dialogueTitle}");
+        Debug.Log(
+            $"Loading random dialogue: {dialogueTitle} " +
+            $"({usedIntroductions.Count}/{range})"
+        );
 
         DialoguePrinter.StartDialogue(dialogueTitle);
     }

@@ -17,8 +17,8 @@ public class UI_InventoryLoader_LayoutGroup : MonoBehaviour
     {
         InventorySlot[] inventory = GameManager.Inventory.GetLedger();
 
-        Debug.Log($"Inventory contains {inventory.Length} slots");
-        Debug.Log($"Current UI children: {children.Count}");
+        //Debug.Log($"Inventory contains {inventory.Length} slots");
+        //Debug.Log($"Current UI children: {children.Count}");
 
         // Create additional buttons if needed
         while (children.Count < inventory.Length)

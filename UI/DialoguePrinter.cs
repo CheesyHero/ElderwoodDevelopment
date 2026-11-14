@@ -18,14 +18,18 @@ public class DialoguePrinter : MonoBehaviour
     public Vector2 pitchRange = new Vector2(0.8f, 1.2f);
     public int soundFrequency = 3;
 
+    [Header("Skip Protection")]
+    public float skipLockDuration = 0.1f;
+    private float skipUnlockTime;
+
     [Header("Actor Animation")]
     public Animator animator; 
     private Coroutine routine;
 
     [Header("Raycast Blocking")]
     public CanvasGroupFader backgroundFader;
-
     public bool IsPrinting => routine != null;
+    public static bool IsActive { get; private set; }
     public DialoguePacket CurrentPacket => currentPacket;
 
     public static DialoguePrinter Instance { get; private set; }
@@ -48,6 +52,7 @@ public class DialoguePrinter : MonoBehaviour
 
         SetAnimatorBool("talking", false);
         SetAnimatorBool("active", false);
+        IsActive = false;
     }
 
     private void OnDestroy()
@@ -89,6 +94,7 @@ public class DialoguePrinter : MonoBehaviour
         currentPacket = packet;
         hasDialogue = true;
 
+        IsActive = true;
         SetAnimatorBool("active", true);
         StartPrint();
     }
@@ -115,6 +121,8 @@ public class DialoguePrinter : MonoBehaviour
 
         if (!hasDialogue || dialogueText == null)
             return;
+
+        skipUnlockTime = Time.unscaledTime + skipLockDuration;
 
         LoadOptions();
 
@@ -169,7 +177,7 @@ public class DialoguePrinter : MonoBehaviour
 
         routine = null;
 
-        StopAudio();
+        PlayAudio();
         SetAnimatorBool("talking", false);
     }
 
@@ -198,6 +206,8 @@ public class DialoguePrinter : MonoBehaviour
     {
         if (!hasDialogue)
             return;
+        if (Time.unscaledTime < skipUnlockTime)
+            return;
 
         if (IsPrinting)
         {
@@ -216,6 +226,8 @@ public class DialoguePrinter : MonoBehaviour
     public void SelectOptionB()
     {
         if (!hasDialogue)
+            return; 
+        if (Time.unscaledTime < skipUnlockTime)
             return;
 
         if (IsPrinting)
@@ -231,9 +243,11 @@ public class DialoguePrinter : MonoBehaviour
 
         else EndDialogue();
     }
-
     public void SkipToEnd()
     {
+        if (Time.unscaledTime < skipUnlockTime)
+            return; 
+
         if (!IsPrinting || dialogueText == null)
             return;
 
@@ -245,7 +259,7 @@ public class DialoguePrinter : MonoBehaviour
 
         dialogueText.maxVisibleCharacters = int.MaxValue;
 
-        StopAudio();
+        PlayAudio();
         SetAnimatorBool("talking", false);
     }
 
@@ -264,6 +278,7 @@ public class DialoguePrinter : MonoBehaviour
 
         SetAnimatorBool("talking", false);
         SetAnimatorBool("active", false);
+        IsActive = false;
 
         if (dialogueText != null)
             dialogueText.text = "";
@@ -296,6 +311,7 @@ public class DialoguePrinter : MonoBehaviour
 
         SetAnimatorBool("talking", false);
         SetAnimatorBool("active", false);
+        IsActive = false;
     }
 
     public void SaveFlag()
@@ -317,16 +333,18 @@ public class DialoguePrinter : MonoBehaviour
 
     public void SetBackground(bool fadeIn)
     {
-        Debug.Log(
-            $"[Dialogue] SetBackground({fadeIn}) called.\n" +
-            System.Environment.StackTrace
-        );
+        //Debug.Log(
+        //    $"[Dialogue] SetBackground({fadeIn}) called.\n" +
+        //    System.Environment.StackTrace
+        //);
 
         backgroundFader?.Fade(fadeIn);
     }
     public void SkipAll()
     {
         if (!hasDialogue)
+            return; 
+        if (Time.unscaledTime < skipUnlockTime)
             return;
 
         // Prevent infinite loops caused by circular pointers.

@@ -32,6 +32,7 @@ public class TurnManager : StateMachine
     }
     private void Start()
     {
+        Round = 0;
         ChangeState(introduction);
     }
     public static void NextTurn()

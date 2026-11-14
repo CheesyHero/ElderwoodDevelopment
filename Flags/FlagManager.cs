@@ -32,7 +32,7 @@ public static class FlagManager
     {
         bool exists = flags.ContainsKey(name);
 
-        Debug.Log($"[Flags] Validating: {name} - {(exists ? "TRUE" : "FALSE")}");
+        //Debug.Log($"[Flags] Validating: {name} - {(exists ? "TRUE" : "FALSE")}");
 
         return exists;
     }

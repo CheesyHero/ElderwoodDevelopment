@@ -85,6 +85,8 @@ public class PlayerSelection : MonoBehaviour
 
     private void HandleInput(string id)
     {
+        //Debug.Log($"[PlayerSelection] Received input: {id}");
+
         if (!enabled)
             return;
 
@@ -93,10 +95,9 @@ public class PlayerSelection : MonoBehaviour
 
         id = id.Trim().ToLowerInvariant();
 
-        // Cancel must always take priority.
-        if (id == "cancel" || id == "menu")
+        if (id == "cancel")
         {
-            CancelSelection(true);
+            CancelSelection(false);
             return;
         }
 
@@ -105,7 +106,7 @@ public class PlayerSelection : MonoBehaviour
 
         switch (id)
         {
-            case "select": 
+            case "select":
                 TrySelection();
                 PlayPointFeedback();
                 PlaySelectAudioFeedback();
@@ -251,8 +252,7 @@ public class PlayerSelection : MonoBehaviour
 
         OnCancel?.Invoke();
 
-        if (print)
-            BannerArray.PrintReport(" - Cancel Selection - ");
+        if (print) BannerArray.PrintReport(" - Cancel Selection - ");
     }
 
     private void TryInteract()

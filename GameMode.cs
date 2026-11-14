@@ -16,8 +16,9 @@ public class GameMode
 
         // alternative player lose condition //
         if (HexCrawlManager.TurnTimer > 0 && HexCrawlManager.TurnsRemaining <= 0)
-        {  
+        {
             // player loses
+            Debug.LogWarning($"TIME UP! timer = {HexCrawlManager.TurnTimer} - turns remaining = {HexCrawlManager.TurnsRemaining} ({HexCrawlManager.TurnTimer} - {TurnManager.Round})");
             EnemyArmyManager.Defeat(GameManager.Player);
         }
 

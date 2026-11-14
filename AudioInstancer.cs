@@ -29,19 +29,11 @@ public class AudioInstancer : MonoBehaviour
     {
         if (!audioSource) return;
 
+        audioSource.Stop();
         audioSource.pitch = modulate ? Random.Range(modulation.x, modulation.y) : 1f; 
 
         audioSource.clip = clip;
         audioSource.volume = volume;
         audioSource.Play();
-    }
-
-    private void PlayOneShot(AudioClip clip, float volume, bool modulate)
-    {
-        if (!audioSource) return;
-
-        audioSource.pitch = modulate ? Random.Range(modulation.x, modulation.y) : 1f;
-
-        audioSource.PlayOneShot(clip, volume);
-    }
+    } 
 }
