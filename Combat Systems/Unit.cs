@@ -301,28 +301,92 @@ public class Unit
 
     public void LoadDebugTest()
     {
-        if (debugTestSettings.Length != 2) return;
+        if (debugTestSettings == null || debugTestSettings.Length != 2)
+            return;
 
-        for (int x = 0; x < debugTestSettings.Length; x++)
+        int[][] requested = GetRequestedPlacements();
+
+        ClearPlacements();
+        PlaceRequestedHeroes(requested);
+        PlaceRemainingHeroes();
+
+        UpdateDebugTestSettingsFromPlacements();
+    }
+
+    // Convert the input Vector3[] into an int[][].
+    private int[][] GetRequestedPlacements()
+    {
+        int[][] requested = new int[debugTestSettings.Length][];
+
+        for (int x = 0; x < requested.Length; x++)
+            requested[x] = GetVector3AsArray(debugTestSettings[x]);
+
+        return requested;
+    }
+
+    // Reset every placement to empty.
+    private void ClearPlacements()
+    {
+        for (int x = 0; x < placements.Length; x++)
+            for (int y = 0; y < placements[x].Length; y++)
+                placements[x][y] = -1;
+    }
+
+    // Place heroes in their requested positions.
+    // Duplicate hero indices randomly select one position.
+    private void PlaceRequestedHeroes(int[][] requested)
+    {
+        for (int heroIndex = 0; heroIndex < heroes.Count; heroIndex++)
         {
-            int[] column = GetVector3AsArray(debugTestSettings[x]);
+            List<(int x, int y)> candidates = new();
 
-            List<int> tileIndexes = new();
-            for (int y = 0; y < column.Length; y++)
-                tileIndexes.Add(y);
-
-            Shuffle(tileIndexes);
-
-            for (int i = 0; i < column.Length; i++)
+            for (int x = 0; x < requested.Length; x++)
             {
-                int heroIndex = column[i];
-                int randomY = tileIndexes[i];
+                for (int y = 0; y < requested[x].Length; y++)
+                {
+                    if (requested[x][y] == heroIndex)
+                        candidates.Add((x, y));
+                }
+            }
 
-                PlaceHero(heroIndex, x, randomY, false);
+            if (candidates.Count == 0)
+                continue;
+
+            var position = candidates[Random.Range(0, candidates.Count)];
+
+            placements[position.x][position.y] = heroIndex;
+        }
+    }
+
+    // Place any heroes without positions into random empty slots.
+    private void PlaceRemainingHeroes()
+    {
+        List<(int x, int y)> available = new();
+
+        for (int x = 0; x < placements.Length; x++)
+        {
+            for (int y = 0; y < placements[x].Length; y++)
+            {
+                if (placements[x][y] == -1)
+                    available.Add((x, y));
             }
         }
 
-        UpdateDebugTestSettingsFromPlacements();
+        Shuffle(available);
+
+        for (int heroIndex = 0; heroIndex < heroes.Count; heroIndex++)
+        {
+            if (IndexIsPlaced(heroIndex))
+                continue;
+
+            if (available.Count == 0)
+                break;
+
+            var position = available[0];
+            available.RemoveAt(0);
+
+            placements[position.x][position.y] = heroIndex;
+        }
     }
     public void UpdateDebugTestSettingsFromPlacements()
     {

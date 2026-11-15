@@ -19,14 +19,19 @@ public class Map_TurnStart : State
 
 
         // start tutorial Hello World
-        if (TurnManager.Round == 0)
-            DialoguePrinter.StartDialogue("Hello World");
+        if(GameManager.CurrentEncounter.depth == 0)
+        { 
+            if (TurnManager.Round == 0)
+                DialoguePrinter.StartDialogue("Hello World");
 
-        else if (TurnManager.Round == 1)
-            DialoguePrinter.StartDialogue("how to battle");
+            else if (TurnManager.Round == 1)
+                DialoguePrinter.StartDialogue("how to battle");
 
-        else if (TurnManager.Round == 2)
-            DialoguePrinter.StartDialogue("map rewards 1");
+            else if (TurnManager.Round == 2)
+                DialoguePrinter.StartDialogue("map rewards 1");
+        }
+
+        else DialoguePrinter.StartDialogue("neutral creeps 1");
     }
 
     public override void Exit()

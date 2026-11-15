@@ -10,21 +10,34 @@ public class TimeScaleEffect : MonoBehaviour
         AnimationCurve.EaseInOut(0, 0, 1, 1);
 
     private Coroutine activeEffect;
-
     private void Awake()
     {
-        instance = this;
+        if (instance == null)
+            instance = this;
     }
 
     public static void TriggerSlowMotion(float slowTimeScale = 0.1f, float holdDuration = 0.1f, float recoveryDuration = 0.5f)
-    { 
-        if (instance == null)
+    {
+        if (instance == null || !instance.isActiveAndEnabled)
+        {
+            Debug.LogWarning("TimeScaleEffect: No active instance available.");
             return;
+        }
 
         if (instance.activeEffect != null)
+        {
+            Debug.LogWarning("TimeScaleEffect: Currently slowing down time scale...");
             return;
+        }
 
-        instance.activeEffect = instance.StartCoroutine(instance.SlowMotionRoutine(slowTimeScale, holdDuration, recoveryDuration));
+        Debug.LogWarning("TimeScaleEffect: Starting slowdown effect...");
+        instance.activeEffect = instance.StartCoroutine(
+            instance.SlowMotionRoutine(
+                slowTimeScale,
+                holdDuration,
+                recoveryDuration
+            )
+        );
     }
 
     private IEnumerator SlowMotionRoutine(float slowTimeScale, float holdDuration, float recoveryDuration)
@@ -54,13 +67,14 @@ public class TimeScaleEffect : MonoBehaviour
 
     private void OnDisable()
     {
+        if (instance != this)
+            return;
+
         if (activeEffect != null)
             StopCoroutine(activeEffect);
 
         activeEffect = null;
-        Time.timeScale = 1f;
-
-        if (instance == this)
-            instance = null;
+        //Time.timeScale = GameSpeedChanger.currentSpeed;
+        //instance = null;
     }
 }

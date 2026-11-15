@@ -34,11 +34,15 @@ public class CommandEffects
 
     public bool ApplyToWalker(HexWalker unit)
     {
+        if (unit == null) return false;
+
+        // Command damage is halved when the target occupies a base.
+        float damageMultiplier = unit.CurrentTile is TeamBase ? 0.5f : 1f;
         PrintPopUpAtWalker(unit);
 
         return effectType switch
         {
-            E_CommandEffect.DamageUnit => ApplyToAllHeroesInUnit(unit.Parent),
+            E_CommandEffect.DamageUnit => ApplyToAllHeroesInUnit(unit.Parent, damageMultiplier),
             E_CommandEffect.HealUnit => ApplyToAllHeroesInUnit(unit.Parent),
             E_CommandEffect.ReviveUnit => ApplyToAllHeroesInUnit(unit.Parent),
             E_CommandEffect.ManaChange => ApplyToAllHeroesInUnit(unit.Parent),
@@ -89,22 +93,26 @@ public class CommandEffects
         return true;
     }
 
-    public bool ApplyToAllHeroesInUnit(Unit unit)
+    public bool ApplyToAllHeroesInUnit(Unit unit, float damageMultiplier = 1f)
     {
+        if (unit == null) return false;
+
         bool applied = false;
 
         foreach (Hero hero in unit.heroes)
-            if (ApplyToHero(hero))
+            if (ApplyToHero(hero, damageMultiplier))
                 applied = true;
 
         return applied;
     }
 
-    public bool ApplyToHero(Hero hero)
+    public bool ApplyToHero(Hero hero, float damageMultiplier = 1f)
     {
+        if (hero == null) return false;
+
         return effectType switch
         {
-            E_CommandEffect.DamageUnit => DamageHero(hero),
+            E_CommandEffect.DamageUnit => DamageHero(hero, damageMultiplier),
             E_CommandEffect.HealUnit => HealHero(hero),
             E_CommandEffect.ReviveUnit => ReviveHero(hero),
             E_CommandEffect.ManaChange => ChangeHeroMana(hero),
@@ -113,12 +121,12 @@ public class CommandEffects
         };
     }
 
-    public bool DamageHero(Hero hero)
+    public bool DamageHero(Hero hero, float damageMultiplier = 1f)
     {
         if (hero.health.IsDead)
             return false;
 
-        int amount = GetHealthValue(hero);
+        int amount = Mathf.CeilToInt(GetHealthValue(hero) * damageMultiplier);
         hero.health.health_current = Mathf.Max(0, hero.health.health_current - amount);
 
         return true;
@@ -202,32 +210,33 @@ public class CommandEffects
         switch (effectType)
         {
             case E_CommandEffect.DamageUnit:
-                UI_PopUpTrigger.CreatePopUp($"-{value}", Color.red, pos, 64);
+                float displayedDamage = unit.CurrentTile is TeamBase ? value * 0.5f : value;
+                UI_PopUpTrigger.CreatePopUp($"-{displayedDamage:0.##}", Color.red, pos, 32);
                 break;
 
             case E_CommandEffect.HealUnit:
-                UI_PopUpTrigger.CreatePopUp($"+{value}", Color.green, pos, 64);
+                UI_PopUpTrigger.CreatePopUp($"+{value}", Color.green, pos, 32);
                 break;
 
             case E_CommandEffect.ReviveUnit:
-                UI_PopUpTrigger.CreatePopUp("Revive", Color.cyan, pos, 64);
+                UI_PopUpTrigger.CreatePopUp("Revive", Color.cyan, pos, 32);
                 break;
 
             case E_CommandEffect.ManaChange:
-                UI_PopUpTrigger.CreatePopUp($"+{value} Mana", Color.blue, pos, 64);
+                UI_PopUpTrigger.CreatePopUp($"+{value} Mana", Color.blue, pos, 32);
                 break;
 
             case E_CommandEffect.AddMovement:
-                UI_PopUpTrigger.CreatePopUp($"+{value} Move", Color.yellow, pos, 64);
+                UI_PopUpTrigger.CreatePopUp($"+{value} Move", Color.yellow, pos, 32);
                 break;
 
             case E_CommandEffect.FreezeMovement:
-                UI_PopUpTrigger.CreatePopUp("Frozen", Color.blue, pos, 64);
+                UI_PopUpTrigger.CreatePopUp("Frozen", Color.blue, pos, 32);
                 break;
 
             case E_CommandEffect.ApplyTeamEffect:
                 Passive effect = Passive.Get((int)value);
-                UI_PopUpTrigger.CreatePopUp($"{effect.skillName}", effect.color, pos, 64);
+                UI_PopUpTrigger.CreatePopUp($"{effect.skillName}", effect.color, pos, 32);
                 break;
         }
     }

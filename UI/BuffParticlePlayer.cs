@@ -23,14 +23,7 @@ public class BuffParticlePlayer : MonoBehaviour
             Enum_HeroAttributes.accuracy => accuracy,
             Enum_HeroAttributes.evasion => evasion,
             _ => null
-        };
-
-        Debug.LogWarning(
-            $"[BUFF PARTICLE PLAY] Stat: {stat} | " +
-            $"Particle Assigned: {particle != null} | " +
-            $"Particle Name: {(particle ? particle.name : "NULL")} | " +
-            $"Active: {(particle ? particle.gameObject.activeInHierarchy : false)}"
-        );
+        }; 
 
         if (!particle)
             return;
