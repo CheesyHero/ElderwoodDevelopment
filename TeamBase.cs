@@ -64,7 +64,7 @@ public class TeamBase : HexTile
     }
     public override void Capture(Army army, bool broadcast)
     {
-        if (army.team == owner) return;
+        if (army == null || army.team == owner) return;
 
         base.Capture(army, broadcast);
         foreach (var item in adjacents)

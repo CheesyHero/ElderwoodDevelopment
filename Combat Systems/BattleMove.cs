@@ -53,6 +53,7 @@ public class BattleMove : Skill
     public string animationID = "attack";
     public Projectile projectile;
     public ParticleSystem impactFX; 
+    public ParticleSystem criticalFX;
 
     [Space(8)]
     public BattleParticleController[] specialEffects;
@@ -128,35 +129,45 @@ public class BattleMove : Skill
         else
         {
             float critical = GetCritical(attacker, defender);
-            if (impactFX) Instantiate(impactFX, defender.transform.position + Vector3.up, defender.transform.rotation); 
+
+            if(critical != 1 && criticalFX) 
+                Instantiate(criticalFX, defender.transform.position + Vector3.up, defender.transform.rotation);
+
+            else if 
+                (impactFX) Instantiate(impactFX, defender.transform.position + Vector3.up, defender.transform.rotation); 
 
             foreach (var effect in effects)  
                 effect.Parse(CreateEvent(attacker, defender), critical); 
 
             if (critical != 1)
+            {
                 UI_PopUpTrigger.CreatePopUp("CRIT!", Color.yellowNice, defender.transform.position, 32);
+                TimeScaleEffect.TriggerSlowMotion(0.2f, 0.1f, 0.5f);
+            }
 
             attacker.GainMana(10, currentAction);
         }
     }
     public float GetCritical(BattleCombatant attacker, BattleCombatant defender)
     {
-        if (criticalChance <= 0)
+        if (criticalChance <= 0) return 1;
+
+        float chance = criticalChance + attacker.Attributes.criticalChance;
+
+        chance = attacker.ParseModifiers(Enum_BattleEvent_Modifier.criticalChance, currentAction, chance); 
+        chance = defender.ParseModifiers(Enum_BattleEvent_Modifier.criticalEvade, currentAction, chance);
+
+        chance = Mathf.Clamp(chance, 0f, 100f);
+
+        if (Random.Range(0f, 100f) >= chance)
             return 1f;
 
-        int roll = Random.Range(0, 99);
-        float target = attacker.Attributes.criticalChance;
-        target = attacker.ParseModifiers(Enum_BattleEvent_Modifier.criticalChance, currentAction, target);  
-        target = defender.ParseModifiers(Enum_BattleEvent_Modifier.criticalEvade, currentAction, target);  
+        float damage = attacker.Attributes.criticalDamage;
 
-        float result = attacker.Attributes.criticalDamage;
-        target = attacker.ParseModifiers(Enum_BattleEvent_Modifier.criticalDamage, currentAction, target);
-        target = defender.ParseModifiers(Enum_BattleEvent_Modifier.criticalResist, currentAction, target);
+        damage = attacker.ParseModifiers(Enum_BattleEvent_Modifier.criticalDamage, currentAction, damage); 
+        damage = defender.ParseModifiers(Enum_BattleEvent_Modifier.criticalResist, currentAction, damage);
 
-        if (roll <= criticalChance + target)
-            return criticalMult * (1 + result / 100f);
-
-        return 1f;
+        return criticalMult * (1f + damage / 100f);
     }
 
     public bool RollHitDice(BattleCombatant attacker, BattleCombatant defender, BattleEvent action)

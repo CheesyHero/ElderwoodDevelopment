@@ -794,7 +794,9 @@ public class BattleCombatant : MonoBehaviour
         battleEvent.source.AsOwner(battleEvent, Enum_BattleEvent_Type.onDefeated);
         UI_PopUpTrigger.CreatePopUp("Defeat", Color.maroon, transform.position, 48);
 
-        //animations.animator.SetBool("Alive", false); 
+        RemoveAllStatusConditions(0);
+
+        TimeScaleEffect.TriggerSlowMotion(0.2f, 0.1f, 0.8f);
     }
 
     public void NotifyRevived(BattleEvent battleEvent = null)
@@ -946,31 +948,11 @@ public class BattleCombatant : MonoBehaviour
     {
         float result = input;
 
-        if (type == Enum_BattleEvent_Modifier.damageIn)
-        {
-            Debug.LogWarning(
-                $"[DAMAGE IN] {name} | " +
-                $"Starting Damage: {input} | " +
-                $"Collected Modifiers: {mods.Count}"
-            );
-        }
-
         foreach (var item in mods)
         {
             float before = result;
             result = item.Parse(type, this, action, result);
-
-            if (type == Enum_BattleEvent_Modifier.damageIn)
-            {
-                Debug.Log(
-                    $"[MODIFIER] {item.modifier} | " +
-                    $"Before: {before} | After: {result}"
-                );
-            }
         }
-
-        if (type == Enum_BattleEvent_Modifier.damageIn)
-            Debug.LogWarning($"[DAMAGE IN RESULT] {result}");
 
         return result;
     }

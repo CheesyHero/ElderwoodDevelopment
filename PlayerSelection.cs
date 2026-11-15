@@ -324,6 +324,10 @@ public class PlayerSelection : MonoBehaviour
         if (TurnManager.Turn != teamIndex)
             return false;
 
+        if (selectable is HexWalker walker &&
+            walker.Army != GameManager.Player)
+            return false;
+
         return selectable.CanBeSelectedByTeam(teamIndex);
     }
 

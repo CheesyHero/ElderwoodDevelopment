@@ -32,7 +32,8 @@ public class HexCrawlManager : MonoBehaviour
     { get { return manager ? manager.importantBases : new TeamBase[0]; } }
     public static TeamBase[] Captures
     { get { return manager ? manager.capturePoints : new TeamBase[0]; } }
-    public static Army Winner { get; private set; }
+    public static Army Winner { get; private set; } 
+
 
     private void Awake()
     {

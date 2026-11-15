@@ -184,8 +184,8 @@ public class HexTile : Selectable
         else return GetClosestAdjacentInDirection(other.transform.position);
     }
     public virtual void Capture(Army army, bool broadcast)
-    {
-        if (owner == army.team) return;
+    { 
+        if (army == null || owner == army.team) return;
 
         owner = army.team;
 
@@ -233,7 +233,7 @@ public class HexTile : Selectable
         else
         {
             Hero leader = unit.Parent.Leader();
-            LeaderTraits traits = leader.heroClass.leaderTraits; 
+            LeaderTraits traits = leader != null ? leader.heroClass.leaderTraits : new(); 
             int homePenalty = traits.ContainsUnfavoredType(unit.CurrentTile.type) ? 1 : 0;
 
             UpdateCost(1 + homePenalty);

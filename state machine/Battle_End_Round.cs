@@ -26,21 +26,6 @@ public class Battle_End_Round : State
         int remainingAP = BattleUnit.GetActivePoints();
         bool defeated = AutoBattleManager.CheckWinner();
 
-        Debug.LogWarning(
-            $"END ROUND | AP: {remainingAP} | " +
-            $"Defeated: {defeated} | " +
-            $"TurnOrder: {AutoBattleManager.TurnOrder.Count}"
-        );
-
-        foreach (var hero in BattleCombatant.AllCombatants)
-        {
-            Debug.Log(
-                $"{hero.name} | " +
-                $"Alive: {hero.IsAlive} | " +
-                $"AP: {hero.actionPoints}"
-            );
-        }
-
         if (defeated)
             parent.ChangeState("battle_end");
         else if (remainingAP > 0)

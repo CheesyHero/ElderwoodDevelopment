@@ -3,6 +3,9 @@ using TMPro;
 
 public class RewardsManager : MonoBehaviour
 {
+    public bool oneShot = false;
+
+    [Header("Main")]
     public int initialPayResult = 0;
     public int timeLimitResult = 0;
     public int controlAllResult = 0;
@@ -31,20 +34,38 @@ public class RewardsManager : MonoBehaviour
 
     public static bool HasSpeedRun;
     public static bool HasDominion;
-    
+
     private void OnEnable()
     {
         CountRewards();
     }
+
     private void Update()
     {
         if (resultsDisplay)
-            resultsDisplay.text = $"Pick {totalRewards - used} rewards!";
+            resultsDisplay.text = $"Pick {Mathf.Max(0, totalRewards - used)} rewards!";
     }
 
     public void CountRewards()
     {
         used = 0;
+
+        // One Shot: exactly one reward, no payout.
+        if (oneShot)
+        {
+            totalRewards = 1;
+
+            initialPayResult = 0;
+            timeLimitResult = 0;
+            controlAllResult = 0;
+            perStrongholdResult = 0;
+            grandTotalResult = 0;
+
+            HasSpeedRun = false;
+            HasDominion = false;
+
+            return;
+        }
 
         HasSpeedRun = TurnManager.Round <= speedrun;
         HasDominion = TeamBase.HasDominion(GameManager.Player.team);
@@ -52,12 +73,22 @@ public class RewardsManager : MonoBehaviour
         initialPayResult = basePayout * (GameManager.CurrentLevel + 1);
         timeLimitResult = HasSpeedRun ? payoutForSpeedrun : 0;
         controlAllResult = HasDominion ? payoutForDominion : 0;
-        perStrongholdResult = (TeamBase.DominionCount(GameManager.Player.team) - 1) * payoutPerStronghold;
+        perStrongholdResult =
+            (TeamBase.DominionCount(GameManager.Player.team) - 1)
+            * payoutPerStronghold;
 
-        grandTotalResult = initialPayResult + timeLimitResult + controlAllResult + perStrongholdResult;
+        grandTotalResult =
+            initialPayResult +
+            timeLimitResult +
+            controlAllResult +
+            perStrongholdResult;
 
-        totalRewards = Mathf.Min(1 + (HasSpeedRun ? 1 : 0) + (HasDominion ? 1 : 0), max);
+        totalRewards = Mathf.Min(
+            1 + (HasSpeedRun ? 1 : 0) + (HasDominion ? 1 : 0),
+            max
+        );
     }
+
     public void MoveToNext()
     {
         used++;
@@ -65,20 +96,32 @@ public class RewardsManager : MonoBehaviour
         if (used >= totalRewards)
             Skip();
     }
+
     public void Skip()
     {
+        if (oneShot)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         if (GameManager.CurrentEncounter.depth < 5)
         {
-            //GameManager.Inventory.AddItem(basicReward); 
+            // GameManager.Inventory.AddItem(basicReward);
         }
         else
         {
-            //GameManager.Inventory.AddItem(bossReward ? basicReward : bossReward);
+            // GameManager.Inventory.AddItem(
+            //     bossReward ? basicReward : bossReward
+            // );
+
             GameManager.NextLevel();
         }
 
         ExperienceBonus();
-        //GameManager.Inventory.GainMoney(grandTotalPayout); 
+
+        // GameManager.Inventory.GainMoney(grandTotalResult);
+
         FlagManager.AddFlag("First Game", FlagType.permanant);
         SceneChanger.ChangeScenes(nextScene);
     }
@@ -87,11 +130,15 @@ public class RewardsManager : MonoBehaviour
     {
         Army player = GameManager.Player;
 
-        if(player.homeBase.CurrentUnit != null)
+        if (player.homeBase.CurrentUnit != null)
+        {
             foreach (var item in player.homeBase.CurrentUnit.Parent.heroes)
-                item.GainExperience(EnemyArmyManager.GetOtherKnockOuts(player) * 10); // home defender bonus
+                item.GainExperience(
+                    EnemyArmyManager.GetOtherKnockOuts(player) * 10
+                );
+        }
 
         foreach (var item in player.party)
-            item.GainExperience(50 + GameManager.Distance * 5); // all army bonus
+            item.GainExperience(50 + GameManager.Distance * 5);
     }
 }

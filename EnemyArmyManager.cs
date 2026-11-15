@@ -7,6 +7,7 @@ public class EnemyArmyManager : MonoBehaviour
     public HexWalker gamePiece;
     public static EnemyArmyManager manager; 
     public List<Army> armies = new();
+    public static Army Wilderness { get; private set; }
     public static Army[] AllArmies { get { return manager.armies.ToArray(); } }
     public static int Combatants { get { return manager ? manager.armies.Count : 0; } }
     public static UnityAction<HexWalker> OnUnitSpawned; 
@@ -30,21 +31,40 @@ public class EnemyArmyManager : MonoBehaviour
     }
     public void Initialize()
     {
-        armies.Add(GameManager.Player);
-        foreach (var army in GetComponentsInChildren<Army>())
-            armies.Add(army);
+        armies.Clear();
 
-        for(int  i = 0; i < armies.Count; i++)
+        armies.Add(GameManager.Player);
+
+        foreach (var army in GetComponentsInChildren<Army>())
+        {
+            if (army.playerID.ToLower() != "wilderness")
+                armies.Add(army);
+
+            else Wilderness = army;
+        }
+        Debug.Log($"Wilderness Found {Wilderness.name}");
+
+        // Initialize regular armies.
+        for (int i = 0; i < armies.Count; i++)
         {
             var next = armies[i];
+
             next.knockOutsThisGame = 0;
             next.RefreshAll();
-            next.homeBase = HexCrawlManager.Bases[i];
+            next.homeBase = HexCrawlManager.GetTeamBaseByIndex(i);
+        }
+
+        // Initialize Wilderness separately.
+        if (Wilderness)
+        {
+            Wilderness.knockOutsThisGame = 0;
+            Wilderness.RefreshAll();
         }
 
         TeamBase.LoadAllTeams();
         HexWalker.InitAll();
     }
+
     public static int GetTeamIndex(Army army)
     {
         var all = AllArmies;

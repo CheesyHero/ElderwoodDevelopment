@@ -37,10 +37,16 @@ public class Health
         if (input == null || input.value <= 0f) return;
 
         DamageShield(ref input);
+
+        var self = GetSelf(input);
+        float percentDmg = input.value / self.hero.health.health_max;
+        if (percentDmg > 0.1f && percentDmg < 1f)
+            TimeScaleEffect.TriggerSlowMotion(1f - percentDmg, 0.1f, percentDmg);
+
         LoseHealth(input);
 
         Clamp();
-    }
+    } 
     public void GainHealth(BattleEvent input)
     {
         if (input == null || input.value <= 0f) return;
@@ -87,17 +93,24 @@ public class Health
         Clamp();
     }
 
-    private float MitigateShieldDamage(BattleEvent e)
+    public BattleCombatant GetSelf(BattleEvent e)
     {
-        BattleCombatant self = null;
         foreach (var combatant in e.targets)
         {
             if (combatant.hero.health == this)
             {
-                self = combatant;
-                break;
+                return combatant; 
             }
         }
+
+        if (e.source.hero.health == this)
+            return e.source;
+
+        return null;
+    }
+    private float MitigateShieldDamage(BattleEvent e)
+    {
+        BattleCombatant self = null;
 
         if (self == null || e.move == null)
             return e.value;

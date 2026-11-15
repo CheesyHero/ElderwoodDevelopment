@@ -6,6 +6,7 @@ public class GameSpeedChanger : MonoBehaviour
     public static int Index { get { return i; } }
     static int i = 0;
     static readonly float[] speedOptions = new float[] { 1, 2, 3 };
+    public static float currentSpeed { get { return speedOptions[i]; } }
 
     private void OnEnable()
     {

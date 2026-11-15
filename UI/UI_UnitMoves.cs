@@ -26,10 +26,16 @@ public class UI_UnitMoves : MonoBehaviour
     {
         if (!parent) return;
 
-        if(moveText) 
-            moveText.text = parent.Army == EnemyArmyManager.CurrentTurnArmy() ? parent.moves.ToString("0") : ""; 
+        Army currentArmy = EnemyArmyManager.CurrentTurnArmy();
 
-        if(fatigueText)
+        moveText.text =
+            currentArmy != null &&
+            parent.Army != null &&
+            parent.Army == currentArmy
+                ? parent.moves.ToString("0")
+                : "";
+
+        if (fatigueText)
         {
             fatigueText.text = parent.fatigue > 0 ? parent.fatigue.ToString("0") : "";
         }

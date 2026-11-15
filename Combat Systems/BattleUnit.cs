@@ -133,8 +133,8 @@ public class BattleUnit : MonoBehaviour
         spawn.modifiers.resist = copyStats;
 
         spawn.transform.localScale *= copyStats;
-        spawn.actionPoints = Mathf.CeilToInt((float)spawn.actionPoints / 2f);
-        spawn.reactionPoints = Mathf.FloorToInt(((float)spawn.reactionPoints - 1) / 2f);
+        spawn.actionPoints = Mathf.CeilToInt((float)target.actionPoints / 2f);
+        spawn.reactionPoints = Mathf.FloorToInt(((float)target.reactionPoints - 1f) / 2f);
 
         minionRack.PlaceCombatantOnNextTile(spawn); 
     }
