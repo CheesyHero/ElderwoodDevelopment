@@ -143,10 +143,9 @@ public class AiUnitController : HexWalker
         }
 
         // Ask a defender on an adjacent allied base to vacate it.
-        SetNearbyDefenderToMarchIfSelfIsEvasive();
+        // SetNearbyDefenderToMarchIfSelfIsEvasive();
 
-        Vector3 enemyCenter;
-        bool hasEnemies = TryGetEnemyCenter(out enemyCenter);
+        bool hasEnemies = TryGetEnemyCenter(out Vector3 enemyCenter);
         HexTile best = null;
         float bestScore = float.NegativeInfinity;
 

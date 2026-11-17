@@ -57,7 +57,7 @@ public abstract class Selectable : MonoBehaviour
     {
         if (state != Enum_Selection_State.selected)
         {
-            ChangeState(Enum_Selection_State.highlight);
+            ChangeState(Enum_Selection_State.highlight); 
             AudioInstancer.PlayAudioInstance(highlightAudio, highlightVolume);
         }
     }
@@ -74,5 +74,5 @@ public abstract class Selectable : MonoBehaviour
     {
         state = setting;
         OnStateChange?.Invoke(this);
-    }
+    } 
 }

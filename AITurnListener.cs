@@ -1,6 +1,7 @@
-using UnityEngine; 
 using System.Collections;
-using System.Collections.Generic; 
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine; 
 
 public class AITurnListener : MonoBehaviour
 {
@@ -96,11 +97,18 @@ public class AITurnListener : MonoBehaviour
             _ => Enum_AI_Contoller_Modes.march,    // Will move towards the player base. Will attack adjacent enemies.
         };
     }
+
     private IEnumerator AITurnRoutine(List<AiUnitController> aiUnits)
-    { 
+    {
         yield return new WaitForSeconds(1);
 
-        for(int i = 0; i < GameManager.CurrentLevel + 1; i++)
+        // Coordinate evasive units before spawning or moving.
+        PrepareEvasiveRetreats(aiUnits);
+        // Move evasive units last, preserving the order of other units.
+        aiUnits = aiUnits.OrderBy(unit => unit && unit.controllerMode == Enum_AI_Contoller_Modes.evasive ? 1 : 0).ToList();
+
+        // Spawn new units.
+        for (int i = 0; i < GameManager.CurrentLevel + 1; i++)
         {
             if (PlacedNewUnit(aiUnits))
                 yield return new WaitForSeconds(0.6f);
@@ -108,6 +116,7 @@ public class AITurnListener : MonoBehaviour
 
         yield return new WaitForSeconds(0.6f);
 
+        // Move all units normally.
         foreach (AiUnitController actor in aiUnits)
         {
             if (!actor) continue;
@@ -136,7 +145,53 @@ public class AITurnListener : MonoBehaviour
 
         aiRoutine = null;
         TurnManager.EndTurn(ActiveArmy);
-    } 
+    }
+
+
+    private void PrepareEvasiveRetreats(List<AiUnitController> aiUnits)
+    {
+        foreach (AiUnitController actor in aiUnits)
+        {
+            if (!actor || !actor.CurrentTile || actor.controllerMode != Enum_AI_Contoller_Modes.evasive)
+                continue;
+
+            TeamBase nearestBase = null;
+            float nearestDistance = float.PositiveInfinity;
+
+            foreach (TeamBase teamBase in TeamBase.bases)
+            {
+                if (!teamBase || teamBase.owner == null || !teamBase.owner.CompareAllied(actor.Team))
+                    continue;
+
+                float distance = Vector3.Distance(actor.transform.position, teamBase.transform.position);
+
+                if (distance < nearestDistance)
+                {
+                    nearestDistance = distance;
+                    nearestBase = teamBase;
+                }
+            }
+
+            // Only coordinate when the retreat base is adjacent.
+            if (!nearestBase || !actor.CurrentTile.adjacents.Contains(nearestBase))
+                continue;
+
+            if (nearestBase.CurrentUnit is not AiUnitController occupant)
+                continue;
+
+            if (occupant == actor || occupant.Army != ActiveArmy)
+                continue;
+
+            // Never interrupt another evasive unit.
+            if (occupant.controllerMode == Enum_AI_Contoller_Modes.evasive)
+                continue;
+
+            occupant.controllerMode = Enum_AI_Contoller_Modes.march;
+
+            Debug.Log($"AI Retreat: {actor.name} requested {occupant.name} to vacate {nearestBase.name}.");
+        }
+    }
+
 
     private AiUnitController CreateNewUnit(Army army)
     {

@@ -61,7 +61,7 @@ public class ArmyGenerator : ScriptableObject
         List<Hero> list = new();
         foreach (var item in picks)
         {
-            Debug.Log("Class loaded from generation list = " + (item ? item.name : "NULL"));
+            // Debug.Log("Class loaded from generation list = " + (item ? item.name : "NULL"));
              
             Hero h = new(5, item);
             h.Initialize();

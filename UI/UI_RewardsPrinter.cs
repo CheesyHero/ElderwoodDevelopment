@@ -18,6 +18,12 @@ public class UI_RewardsPrinter : MonoBehaviour
     [Header("Typewriter")]
     public float characterDelay = 0.02f;
 
+    [Header("Audio")]
+    public AudioClip experienceAudio, defenderAudio;
+    public AudioClip rewardsAudio1, rewardsAudio2, rewardsAudio3;
+
+    private WaitForSecondsRealtime wait;
+
     private void Start()
     {
         if (!text || !parent || !button) return;
@@ -31,20 +37,14 @@ public class UI_RewardsPrinter : MonoBehaviour
         text.maxVisibleCharacters = 0;
         button.interactable = false;
 
-        WaitForSecondsRealtime wait = new(intervalDelay);
+        wait = new(intervalDelay);
 
         yield return new WaitForSecondsRealtime(startDelay);
 
         // GOLD REWARDS
-        yield return TypeAppend(
-            "<color=yellow><b>GOLD REWARDS</b></color>\n"
-        );
+        yield return TypeAppend("<color=yellow><b>GOLD REWARDS</b></color>\n");
 
-        yield return TypeAppend(
-            $"Level Complete: <color=yellow>{parent.initialPayResult}g</color>\n"
-        );
-        GameManager.Inventory.GainMoney(parent.initialPayResult);
-        yield return wait;
+        yield return PrintReward("Level Complete", parent.initialPayResult);
 
         yield return SpeedRunPrint();
         yield return wait;
@@ -52,20 +52,11 @@ public class UI_RewardsPrinter : MonoBehaviour
         yield return BasesCapturedPrint();
         yield return wait;
 
-        if (RewardsManager.HasDominion)
-        {
-            yield return TypeAppend(
-                $"Dominion: <color=yellow>{parent.controlAllResult}g</color>\n"
-            );
+        yield return PrintReward("Dominion", parent.controlAllResult);
 
-            GameManager.Inventory.GainMoney(parent.controlAllResult);
-            yield return wait;
-        }
+        yield return PrintReward("Bounties", parent.totalBonusResult, RewardsManager.Bonuses.ToString());
 
-        yield return TypeAppend(
-            $"\n<u>Total Gold: <color=yellow>{parent.grandTotalResult}g</color></u>\n"
-        );
-
+        yield return TypeAppend($"\n<u>Total Gold: <color=yellow>{parent.grandTotalResult}g</color></u>\n");
         yield return wait;
 
         // EXPERIENCE REWARDS
@@ -119,36 +110,42 @@ public class UI_RewardsPrinter : MonoBehaviour
         Army player = GameManager.Player;
 
         int armyEXP = 50 + GameManager.Distance * 5;
-        int defenderEXP =
-            EnemyArmyManager.GetOtherKnockOuts(player) * 10;
+        int defenderEXP = EnemyArmyManager.GetOtherKnockOuts(player) * 10;
+
+        PlayAudio(experienceAudio);
+
+        yield return TypeAppend("\n<color=green><b>EXPERIENCE REWARDS</b></color>\n");
 
         yield return TypeAppend(
-            "\n<color=green><b>EXPERIENCE REWARDS</b></color>\n"
-        );
-
-        yield return TypeAppend(
-            $"Army Experience: " +
-            $"<color=green>+{armyEXP} EXP</color> per hero\n"
+            $"Army Experience: <color=green>+{armyEXP} EXP</color> per hero\n"
         );
 
         if (player.homeBase.CurrentUnit != null)
         {
+            PlayAudio(defenderAudio);
+
             yield return TypeAppend(
-                $"Home Defense: " +
-                $"<color=green>+{defenderEXP} EXP</color> per defender\n"
+                $"Home Defense: <color=green>+{defenderEXP} EXP</color> per defender\n"
             );
         }
     }
 
     private IEnumerator ItemRewardsPrint()
     {
-        yield return TypeAppend(
-            "\n<color=yellow><b>ITEM REWARDS</b></color>\n"
-        );
+        yield return TypeAppend("\n<color=yellow><b>ITEM REWARDS</b></color>\n");
+
+        AudioClip rewardClip = parent.totalRewards switch
+        {
+            1 => rewardsAudio1,
+            2 => rewardsAudio2,
+            3 => rewardsAudio3,
+            _ => null
+        };
+
+        PlayAudio(rewardClip);
 
         yield return TypeAppend(
-            $"Reward Selections: " +
-            $"<color=yellow>{parent.totalRewards}</color>\n"
+            $"Reward Selections: <color=yellow>{parent.totalRewards}</color>\n"
         );
     }
 
@@ -168,16 +165,11 @@ public class UI_RewardsPrinter : MonoBehaviour
         {
             timer += Time.unscaledDeltaTime;
 
-            int charsToReveal =
-                Mathf.FloorToInt(timer / characterDelay);
+            int charsToReveal = Mathf.FloorToInt(timer / characterDelay);
 
             if (charsToReveal > 0)
             {
-                text.maxVisibleCharacters = Mathf.Min(
-                    text.maxVisibleCharacters + charsToReveal,
-                    targetVisible
-                );
-
+                text.maxVisibleCharacters = Mathf.Min(text.maxVisibleCharacters + charsToReveal, targetVisible);
                 timer -= charsToReveal * characterDelay;
             }
 
@@ -185,5 +177,30 @@ public class UI_RewardsPrinter : MonoBehaviour
         }
 
         text.maxVisibleCharacters = targetVisible;
+    }
+
+    private IEnumerator PrintReward(string title, int amount, string parentheses = "", Color? color = null)
+    {
+        if (amount <= 0) yield break;
+
+        Color selectedColor = color ?? Color.green;
+        string hexColor = ColorUtility.ToHtmlStringRGB(selectedColor);
+
+        string extra = string.IsNullOrWhiteSpace(parentheses)
+            ? ""
+            : $" (<color=#{hexColor}>{parentheses}</color>)";
+
+        yield return TypeAppend($"{title}{extra}: <color=yellow>{amount}g</color>\n");
+
+        GameManager.Inventory.GainMoney(amount);
+
+        yield return wait;
+    }
+
+    private void PlayAudio(AudioClip clip, float volume = 1f, bool modulate = true)
+    {
+        if (!clip) return;
+
+        AudioInstancer.PlayAudioInstance(clip, volume, modulate);
     }
 }

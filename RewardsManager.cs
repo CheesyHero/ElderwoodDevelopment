@@ -11,6 +11,7 @@ public class RewardsManager : MonoBehaviour
     public int controlAllResult = 0;
     public int perStrongholdResult = 0;
     public int grandTotalResult = 0;
+    public int totalBonusResult = 0;
 
     [Header("Input Values")]
     public int nextScene = 0;
@@ -26,6 +27,7 @@ public class RewardsManager : MonoBehaviour
     public int payoutPerStronghold = 25;
     public int payoutForSpeedrun = 100;
     public int payoutForDominion = 100;
+    public int payoutBonusPerReward = 100;
 
     [Header("Tools")]
     public TextMeshProUGUI resultsDisplay;
@@ -34,6 +36,9 @@ public class RewardsManager : MonoBehaviour
 
     public static bool HasSpeedRun;
     public static bool HasDominion;
+
+    private static int bonusRewards = 0;
+    public static int Bonuses { get { return bonusRewards; } }
 
     private void OnEnable()
     {
@@ -60,9 +65,12 @@ public class RewardsManager : MonoBehaviour
             controlAllResult = 0;
             perStrongholdResult = 0;
             grandTotalResult = 0;
+            totalBonusResult = 0;
 
             HasSpeedRun = false;
             HasDominion = false;
+
+            bonusRewards++;
 
             return;
         }
@@ -77,11 +85,15 @@ public class RewardsManager : MonoBehaviour
             (TeamBase.DominionCount(GameManager.Player.team) - 1)
             * payoutPerStronghold;
 
+
+        totalBonusResult = bonusRewards * payoutBonusPerReward;
+
         grandTotalResult =
             initialPayResult +
             timeLimitResult +
             controlAllResult +
-            perStrongholdResult;
+            perStrongholdResult +
+            totalBonusResult;
 
         totalRewards = Mathf.Min(
             1 + (HasSpeedRun ? 1 : 0) + (HasDominion ? 1 : 0),
@@ -115,7 +127,10 @@ public class RewardsManager : MonoBehaviour
             //     bossReward ? basicReward : bossReward
             // );
 
+            // Changing scene
+
             GameManager.NextLevel();
+            bonusRewards = 0;
         }
 
         ExperienceBonus();
@@ -140,5 +155,5 @@ public class RewardsManager : MonoBehaviour
 
         foreach (var item in player.party)
             item.GainExperience(50 + GameManager.Distance * 5);
-    }
+    } 
 }

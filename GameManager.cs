@@ -59,10 +59,14 @@ public class GameManager : Army
             // Generate next level
             SetNewWorld(Player.currentWorld.nextWorld);
         }
+
+        Player.defeated = false; 
     }
     public static void SetNewWorld(World next)
     {
         if (!Player) return;
+
+        Player.defeated = false; 
 
         Player.currentWorld = next;
         Player.level = next.difficulty - 1;
@@ -111,6 +115,8 @@ public class GameManager : Army
     public static void NewGame(ArmyGenerator newArmy, World newWorld)
     {
         if (!manager) return;
+
+        Player.defeated = false;
 
         Player.party.Clear();
         Player.units.Clear();
