@@ -301,8 +301,13 @@ public class AiUnitController : HexWalker
         if (forcedEvasive || controllerMode == Enum_AI_Contoller_Modes.evasive ||
             Parent == null || Parent.Leader() == null) return;
 
-        if (Parent.GetTotalHealthPercent() < 0.5f || Parent.Leader().health.IsDead)
+        if (controllerMode != Enum_AI_Contoller_Modes.aggressive &&
+            controllerMode != Enum_AI_Contoller_Modes.evasive &&
+            (Parent.GetTotalHealthPercent() < 0.5f || Parent.Leader().health.IsDead))
         {
+            if (CurrentTile is TeamBase)
+                return;
+
             lastMode = controllerMode;
             controllerMode = Enum_AI_Contoller_Modes.evasive;
             forcedEvasive = true;

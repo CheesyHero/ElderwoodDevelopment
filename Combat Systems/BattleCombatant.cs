@@ -85,7 +85,7 @@ public class BattleCombatant : MonoBehaviour
     {
         if (animations)
             animations.animator.SetBool("Alive", IsAlive);
-    }
+    } 
 
     private void ListenForEvent(BattleEvent action)
     {
@@ -110,6 +110,7 @@ public class BattleCombatant : MonoBehaviour
 
         AutoBattleManager.AddToStack(response);
     }
+     
     private void CheckStatuses(BattleEvent action)
     {
         if (action == null) return;
@@ -136,7 +137,7 @@ public class BattleCombatant : MonoBehaviour
             item.ApplyEffects(this, action, 1);
         }
 
-        CleanUpStatuses();
+        CleanUpStatuses(); 
     }
     public void CleanUpStatuses()
     {

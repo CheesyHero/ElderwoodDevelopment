@@ -20,18 +20,18 @@ public class TimeScaleEffect : MonoBehaviour
     {
         if (instance == null || !instance.isActiveAndEnabled)
         {
-            Debug.LogWarning("TimeScaleEffect: No active instance available.");
+            //Debug.LogWarning("TimeScaleEffect: No active instance available.");
             return;
         }
 
         if (instance.activeEffect != null && slowTimeScale * GameSpeedChanger.currentSpeed < Time.timeScale)
         {
-            Debug.LogWarning("TimeScaleEffect: Currently slowing down time scale...");
+            //Debug.LogWarning("TimeScaleEffect: Currently slowing down time scale...");
             instance.StopCoroutine(instance.activeEffect);
             //return;
         }
 
-        Debug.LogWarning("TimeScaleEffect: Starting slowdown effect...");
+        //Debug.LogWarning("TimeScaleEffect: Starting slowdown effect...");
         instance.activeEffect = instance.StartCoroutine(
             instance.SlowMotionRoutine(
                 slowTimeScale,
