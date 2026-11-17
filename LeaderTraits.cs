@@ -7,13 +7,15 @@ public class LeaderTraits
     public int maxMoves = 3;
     public Enum_HexTile_Type[] weakLandTypes = new Enum_HexTile_Type[] 
     { Enum_HexTile_Type.mountain, Enum_HexTile_Type.water };
+    public Enum_HexTile_Type[] favoredTerrain = new Enum_HexTile_Type[]
+    { Enum_HexTile_Type.mountain, Enum_HexTile_Type.water };
     public Enum_HexTile_Type[] noWalkLandTypes = new Enum_HexTile_Type[] 
     { Enum_HexTile_Type.empty, Enum_HexTile_Type.wall };
 
     public bool ContainsUnfavoredType(Enum_HexTile_Type type)
     {
-        foreach(var item in weakLandTypes)
-            if(item == type) return true; ;
+        foreach (var item in weakLandTypes)
+            if (item == type) return true; ;
 
         return false;
     }
@@ -36,5 +38,19 @@ public class LeaderTraits
         if (!tile) return false;
 
         return ContainsNoWalkType(tile.type);
+    }
+
+    public bool ContainsFavoredType(Enum_HexTile_Type type)
+    {
+        foreach (var item in favoredTerrain)
+            if (item == type) return true; ;
+
+        return false;
+    }
+    public bool ContainsFavoredType(HexTile tile)
+    {
+        if (!tile) return false;
+
+        return ContainsFavoredType(tile.type);
     }
 }

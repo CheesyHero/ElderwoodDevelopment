@@ -114,20 +114,27 @@ public class BattleCombatant : MonoBehaviour
     {
         if (action == null) return;
 
-        if (statusEffects.Count > 0)
-            for (int i = statusEffects.Count - 1; i >= 0; i--)
-            {
-                StatusCondition item = statusEffects[i];
-                item.Apply(this, action);
-            }
+        // Snapshot prevents modifications from breaking iteration.
+        List<StatusCondition> statuses = new(statusEffects);
 
-        var passives = hero.ActivePassives;
-        if (passives.Count > 0)
-            for (int i1 = 0; i1 < passives.Count; i1++)
-            {
-                Passive item = passives[i1];
-                item.ApplyEffects(this, action, 1);
-            }
+        for (int i = statuses.Count - 1; i >= 0; i--)
+        {
+            StatusCondition item = statuses[i];
+
+            // Skip statuses that were removed during processing.
+            if (item == null || !statusEffects.Contains(item))
+                continue;
+
+            item.Apply(this, action);
+        } 
+
+        foreach (Passive item in hero.ActivePassives)
+        {
+            if (item == null)
+                continue;
+
+            item.ApplyEffects(this, action, 1);
+        }
 
         CleanUpStatuses();
     }
@@ -366,7 +373,22 @@ public class BattleCombatant : MonoBehaviour
             battleEvent.value
         );
 
-        Transform target = battleEvent.targets[0].transform;
+        Transform target = null;
+
+        if (battleEvent.targets != null && battleEvent.targets.Count > 0)
+        {
+            BattleCombatant firstTarget = battleEvent.targets[0];
+
+            if (firstTarget)
+                target = firstTarget.transform;
+        }
+
+        if (target == null)
+        {
+            routine = null;
+            AutoBattleManager.CompleteAction(battleEvent);
+            yield break;
+        }
 
         yield return new WaitForSeconds(0.3f); 
         PlayMoveEffect(battleEvent); 

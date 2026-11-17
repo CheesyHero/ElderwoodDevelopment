@@ -234,9 +234,9 @@ public class HexTile : Selectable
         {
             Hero leader = unit.Parent.Leader();
             LeaderTraits traits = leader != null ? leader.heroClass.leaderTraits : new(); 
-            int homePenalty = traits.ContainsUnfavoredType(unit.CurrentTile.type) ? 1 : 0;
+            //int homePenalty = traits.ContainsUnfavoredType(unit.CurrentTile.type) ? 1 : 0;
 
-            UpdateCost(1 + homePenalty);
+            UpdateCost(1);
 
             if (CurrentUnit != null && CurrentUnit.Team == unit.Team)
                 UpdateCost(-1); // cant walk on allies
@@ -245,7 +245,7 @@ public class HexTile : Selectable
                 UpdateCost(-1); // cant walk on walls or pits unless flying
 
             else if (traits.ContainsUnfavoredType(this.type)) 
-                UpdateCost(2 + homePenalty);
+                UpdateCost(2);
 
         }
     }

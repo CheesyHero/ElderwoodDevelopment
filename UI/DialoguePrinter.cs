@@ -52,13 +52,35 @@ public class DialoguePrinter : MonoBehaviour
 
         SetAnimatorBool("talking", false);
         SetAnimatorBool("active", false);
-        IsActive = false;
+        IsActive = false; 
+    }
+    private void OnButtonPressed(string button)
+    {
+        if (button != "select")
+            return;
+
+        OnSelect();
     }
 
+    private void OnSelect()
+    {
+        // If currently printing, finish the current text.
+        if (IsPrinting) 
+            SkipToEnd();  
+
+        // Otherwise, advance the dialogue.
+        else SelectOptionA();
+    }
+    private void OnEnable()
+    {
+        GlobalInputManager.OnButtonEnter += OnButtonPressed;
+    } 
     private void OnDestroy()
     {
         if (Instance == this)
             Instance = null;
+
+        GlobalInputManager.OnButtonEnter -= OnButtonPressed;
     }
 
     public static void StartDialogue(string title)
@@ -312,6 +334,8 @@ public class DialoguePrinter : MonoBehaviour
         SetAnimatorBool("talking", false);
         SetAnimatorBool("active", false);
         IsActive = false;
+         
+        GlobalInputManager.OnButtonEnter -= OnButtonPressed;
     }
 
     public void SaveFlag()

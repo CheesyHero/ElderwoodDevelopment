@@ -52,6 +52,16 @@ public static class RunMapGenerator
 
         var map = new RunMapData { seed = seed };
 
+        World world = LevelSelectMap.World;
+        if (world == null)
+        {
+            Debug.LogError("RunMapGenerator: No World assigned.");
+            return map;
+        }
+
+        // One scene per depth. Shuffle a new pool when all distinct scene indexes are used.
+        // This is local to the run, so previous map generations cannot affect selection.
+        List<int> availableSceneIndexes = new();
         int nextId = 0;
 
         // Layers by depth
@@ -59,7 +69,8 @@ public static class RunMapGenerator
 
         // Depth 0: Start
         layers.Add(new List<int>());
-        int startId = AddNode(map, ref nextId, 0, 0f, 0f, MapNodeType.Start);
+        int startSceneIndex = DrawSceneIndex(world, availableSceneIndexes, rng);
+        int startId = AddNode(map, ref nextId, 0, 0f, 0f, MapNodeType.Start, startSceneIndex);
         layers[0].Add(startId);
 
         // Depth 1..steps-2: middle layers
@@ -78,6 +89,9 @@ public static class RunMapGenerator
 
             layers.Add(new List<int>(count));
 
+            // All nodes at the same depth use the same scene.
+            int sceneIndex = DrawSceneIndex(world, availableSceneIndexes, rng);
+
             // Layout: spread vertically around 0
             float x = d * s.xSpacing;
             float y0 = -((count - 1) * 0.5f) * s.ySpacing;
@@ -85,7 +99,7 @@ public static class RunMapGenerator
             for (int i = 0; i < count; i++)
             {
                 float y = y0 + i * s.ySpacing;
-                int id = AddNode(map, ref nextId, d, x, y, MapNodeType.Normal);
+                int id = AddNode(map, ref nextId, d, x, y, MapNodeType.Normal, sceneIndex);
                 layers[d].Add(id);
             }
         }
@@ -93,7 +107,7 @@ public static class RunMapGenerator
         // Depth steps-1: Boss
         layers.Add(new List<int>());
         int bossDepth = s.steps - 1;
-        int bossId = AddNode(map, ref nextId, bossDepth, bossDepth * s.xSpacing, 0f, MapNodeType.Boss);
+        int bossId = AddNode(map, ref nextId, bossDepth, bossDepth * s.xSpacing, 0f, MapNodeType.Boss, world.bossLevel);
         layers[bossDepth].Add(bossId);
 
         // Connect layers
@@ -136,13 +150,38 @@ public static class RunMapGenerator
 
         return map;
     }
+    private static int DrawSceneIndex(World world, List<int> pool, System.Random rng)
+    {
+        if (world.mapIndexes == null || world.mapIndexes.Length == 0)
+            return 1; // Existing World fallback.
+
+        if (pool.Count == 0)
+        {
+            // Treat each distinct scene index as one available level.
+            HashSet<int> distinct = new(world.mapIndexes);
+            pool.AddRange(distinct);
+
+            // Fisher-Yates shuffle using the map seed's RNG.
+            for (int i = pool.Count - 1; i > 0; i--)
+            {
+                int j = rng.Next(i + 1);
+                (pool[i], pool[j]) = (pool[j], pool[i]);
+            }
+        }
+
+        int index = pool[pool.Count - 1];
+        pool.RemoveAt(pool.Count - 1);
+        return index;
+    }
+
     private static int AddNode(
     RunMapData map,
     ref int nextId,
     int depth,
     float x,
     float y,
-    MapNodeType type)
+    MapNodeType type,
+    int sceneIndex)
     {
         int id = nextId++;
 
@@ -176,7 +215,7 @@ public static class RunMapGenerator
             type = type,
             main = army,
             completed = depth == 0,
-            sceneIndex = world.GetRandomSceneIndex(),
+            sceneIndex = sceneIndex,
 
             storeInventory = army.GetStore(),
 

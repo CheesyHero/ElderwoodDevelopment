@@ -38,9 +38,8 @@ public class Health
 
         DamageShield(ref input);
 
-        var self = GetSelf(input);
-        float percentDmg = input.value / self.hero.health.health_max;
-        if (percentDmg > 0.1f && percentDmg < 1f)
+        float percentDmg = input.value / health_max;
+        if (health_current > 0 && percentDmg > 0.1f && percentDmg < 1f)
             TimeScaleEffect.TriggerSlowMotion(1f - percentDmg, 0.1f, percentDmg);
 
         LoseHealth(input);

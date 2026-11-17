@@ -242,9 +242,9 @@ public class BattleEffect
             float percent = (float)index * 0.01f;
             float recoil = damage * percent;
             if (recoil < 0)
-                source.TakeDamage(new(lastAction.move, lastAction.owner, source, source, recoil));
+                source.TakeDamage(new(lastAction.move, lastAction.owner, source, source, Mathf.Abs(recoil)));
 
-            else source.GainHealth(new(lastAction.move, lastAction.owner, source, source, -recoil));
+            else source.GainHealth(new(lastAction.move, lastAction.owner, source, source, Mathf.Abs(recoil)));
         }
     }
 

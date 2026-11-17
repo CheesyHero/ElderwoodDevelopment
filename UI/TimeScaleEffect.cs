@@ -24,10 +24,11 @@ public class TimeScaleEffect : MonoBehaviour
             return;
         }
 
-        if (instance.activeEffect != null)
+        if (instance.activeEffect != null && slowTimeScale * GameSpeedChanger.currentSpeed < Time.timeScale)
         {
             Debug.LogWarning("TimeScaleEffect: Currently slowing down time scale...");
-            return;
+            instance.StopCoroutine(instance.activeEffect);
+            //return;
         }
 
         Debug.LogWarning("TimeScaleEffect: Starting slowdown effect...");

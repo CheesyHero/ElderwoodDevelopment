@@ -23,6 +23,7 @@ public class World : ScriptableObject
 
     [Header("Map Generation")]
     public int[] mapIndexes;
+    public int bossLevel = 9;
     public RunMapGenerator.Settings mapSettings = new();
 
     public ArmyGenerator GetTutorial()
