@@ -31,6 +31,8 @@ public class DamageShake : MonoBehaviour
 
     public void Shake(float damage)
     {
+        if (enabled == false) return;
+
         if(coroutine != null)
             StopCoroutine(coroutine);
 

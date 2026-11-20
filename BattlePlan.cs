@@ -104,7 +104,8 @@ public class BattlePlan
             MoveType.reaction => 2,
             _ => 99,
         };
-    } 
+    }
+
     public void SortByPriority()
     {
         if (skills == null || skills.Count <= 1) return;
@@ -130,8 +131,8 @@ public class BattlePlan
             int priorityCompare = a.priority.CompareTo(b.priority);
             if (priorityCompare != 0) return priorityCompare;
 
-            // 3) Cost: lower first
-            int costCompare = ma.cost.CompareTo(mb.cost);
+            // 3) Cost: higher first
+            int costCompare = mb.cost.CompareTo(ma.cost);
             if (costCompare != 0) return costCompare;
 
             // 4) Deterministic tie-break
@@ -139,7 +140,8 @@ public class BattlePlan
         });
     }
 
-     
+
+
     public void ResetResponseLedger()
     {
         _respondedIds ??= new List<long>(64);

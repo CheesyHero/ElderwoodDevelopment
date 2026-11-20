@@ -13,9 +13,9 @@ public class TestBattle : MonoBehaviour
         HexWalker.OverrideTerritory(terrain);
 
         teamA.Initialize(true);
-        teamA.Refresh(1, true);
+        teamA.Refresh(1, true, false);
         teamB.Initialize(true);
-        teamB.Refresh(1, true);
+        teamB.Refresh(1, true, false);
     }
     void Start()
     {

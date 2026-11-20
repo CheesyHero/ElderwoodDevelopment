@@ -84,11 +84,11 @@ public class Unit
 
         return $"{heroes[leaderIndex].characterName}";
     }
-    public void Refresh(float percent, bool mana)
+    public void Refresh(float percent, bool mana, bool mitigate)
     {
         cooldown = 0;
         foreach (var hero in heroes)
-            hero.Refresh(percent, mana);
+            hero.Refresh(percent, mana, mitigate);
     }
     public void Initialize(bool loadDebug)
     {
@@ -478,7 +478,7 @@ public class Unit
 
         cooldown -= count;
         if(cooldown <= 0) 
-            Refresh(1, true); 
+            Refresh(1, true, false); 
     }
     public void StartCooldown(int time = 3)
     {
@@ -538,7 +538,7 @@ public class Unit
     public void RefreshCooldown()
     {
         cooldown = 0;
-        Refresh(100, true);
+        Refresh(1, true, false);
     }
 }
 [System.Serializable]

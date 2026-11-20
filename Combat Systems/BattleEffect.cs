@@ -1,6 +1,3 @@
-using NUnit.Framework.Internal;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public enum Enum_BattleEffect_Effects
@@ -21,6 +18,7 @@ public enum Enum_BattleEffect_Effects
 
     shatter = 60,
     redirect = 80,
+    banish = 85,
     counterspell = 100,
 
     copy = 200,
@@ -34,6 +32,7 @@ public class BattleEffect
     { other, self }
     public EffectTarget target;
     public Enum_BattleEffect_Effects effect;
+
     [Tooltip("[Health Values]\n" +
         "0 : Regular\n1 : Percentage Max\n2 : Percentage Current\n3 : Percentage Missing\n4 : Flat Damage\n" +
         "\n[Attribute Indexes]" +
@@ -44,10 +43,16 @@ public class BattleEffect
         "\nreactions = 13; " +
         "\ncriticalChance = 14; " +
         "\ncriticalDamage = 15; " +
-        "\npotential = 0; \n\n"
-        + "- ACTIONS -\n" +
+        "\npotential = 0; \n\n" +
+        "- ACTIONS -\n" +
         "0: Action Points\n1: Reaction Points\n\n" +
-        "[DAMAGE] \nIndex Positive : Life Steal\nIndex Negative: Recoil Damage")]
+        "[DAMAGE]\n" +
+        "Index Positive : Life Steal\nIndex Negative: Recoil Damage\n\n" +
+        "[REMOVE STATUS CONDITIONS]\n" +
+        "-1: Remove Positive Conditions\n" +
+        "0: Remove All Conditions\n" +
+        "1: Remove Negative Conditions")] 
+
     public int index = 0;
     public float weight = 50f;
     public BattleCondition[] conditions;
@@ -134,6 +139,10 @@ public class BattleEffect
 
             case Enum_BattleEffect_Effects.counterspell:
                 RemoveSkillOnStack(target);
+                break;
+
+            case Enum_BattleEffect_Effects.banish:
+                ApplyBanish(source, target);
                 break;
 
             case Enum_BattleEffect_Effects.copy:
@@ -260,7 +269,7 @@ public class BattleEffect
         offense = Mathf.Max(0f, offense);
         defense = Mathf.Max(1f, defense);
 
-        float contest = 3f; // previously offense / defense;
+        float contest = 2.5f; // previously offense / defense;
         float basePower = Mathf.Sqrt(Mathf.Max(0f, source.hero.level * weight * offense / defense)) * contest;
 
         float damage = basePower * variance * mod; 
@@ -437,7 +446,7 @@ public class BattleEffect
                     float level = source.hero.level;
                     float attribute = GetOffense(source);
                     float varience = randomize ? Random.Range(0.9f, 1.1f) : 1f;
-                    float amount = Mathf.Ceil(Mathf.Pow(level * weight * attribute, 1f / 2f) * varience);
+                    float amount = Mathf.Ceil(Mathf.Pow(level * weight * attribute, 1f / 2.5f) * varience);
 
                     return amount;
                 }
@@ -560,5 +569,21 @@ public class BattleEffect
             value = weight,
         }); 
     }
+    public void ApplyBanish(BattleCombatant source, BattleCombatant target)
+    {
+        if (target.hero.heroClass.percentageResistance < 0.9f) return;
+        // If not set to 1, this is a boss character of some sort. No effect against bosses.
 
+        BattleUnit u = target.parent;
+
+        u.children.Remove(target);
+
+        AutoBattleManager.RemoveHeroFromStack(target);
+        LeanTween.scale(target.gameObject, new Vector3(0, 1, 0), 0.33f).setOnComplete(()
+            => target.gameObject.SetActive(false)); 
+
+        // GameObject.Destroy(target.gameObject, 6);
+
+        Debug.Log($"BANISHMENT : {source} has banished {target}, removing them from combat.");
+    }
 }

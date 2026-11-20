@@ -73,10 +73,12 @@ public class Hero
 
         nextLevelRequirement = BattleConstants.GetEXPRequirement(level);
     }
-    public void Refresh(float p, bool mana)
+    public void Refresh(float p, bool mana, bool mitigate)
     {
         //SetAttributeLevels();
-        health.Refresh(p, mana);
+
+        if (mitigate) p *= heroClass.percentageResistance;
+        health.Refresh(p , mana);
 
         //Debug.Log($"{this} has been refreshed {p * 100}%");
     }
@@ -176,7 +178,7 @@ public class Hero
         // Debug.Log($"PROMOTION {this} is now class {heroClass}");
 
         Initialize();
-        Refresh(1, true);
+        Refresh(1, true, false);
         plan.ValidateMoves(this);
     }
 

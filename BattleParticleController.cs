@@ -1,10 +1,11 @@
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public enum BattleParticleTiming
 {
-    OnStart, //
+    OnStart,
     OnAnimate,
     OnHit,
     OnComplete
@@ -12,10 +13,10 @@ public enum BattleParticleTiming
 
 public enum BattleParticleTarget
 {
-    Source, // The user of the move
-    Target, // The target of the move 
-    Unit, // The center of the entire enemy unit
-    Field // In the center of both units
+    Source,
+    Target,
+    Unit,
+    Field
 }
 
 public class BattleParticleController : MonoBehaviour
@@ -25,9 +26,13 @@ public class BattleParticleController : MonoBehaviour
     [Space(8)]
     public float triggerTime = 0.25f;
     public float delay = 0f;
+
     [Space(8)]
     public BattleParticleTiming timing;
     public BattleParticleTarget target;
+
+    [Header("Components")]
+    public AudioSource audioSource;
 
     private ParticleSystem particles;
     private Action onComplete;
@@ -38,19 +43,23 @@ public class BattleParticleController : MonoBehaviour
     private void Awake()
     {
         if (!particles) particles = GetComponent<ParticleSystem>();
+        if (!audioSource) audioSource = GetComponent<AudioSource>();
+
         transform.position += offset;
     }
 
     private void OnEnable()
     {
         if (!activeParticles.Contains(this))
-            activeParticles.Add(this); 
+            activeParticles.Add(this);
     }
 
     private void OnDisable()
     {
+        CancelInvoke();
         activeParticles.Remove(this);
     }
+
     private void OnDestroy()
     {
         activeParticles.Remove(this);
@@ -58,13 +67,23 @@ public class BattleParticleController : MonoBehaviour
 
     public void Play(Action complete = null)
     {
-        if (particles) particles.Play();
+        CancelInvoke();
 
         onComplete = complete;
         completed = false;
 
-        CancelInvoke(nameof(Complete));
-        Invoke(nameof(Complete), triggerTime);
+        if (delay > 0f)
+            Invoke(nameof(StartParticles), delay);
+        else
+            StartParticles();
+    }
+
+    private void StartParticles()
+    {
+        if (particles) particles.Play();
+        if (audioSource && audioSource.clip) audioSource.Play();
+
+        Invoke(nameof(Complete), Mathf.Max(0f, triggerTime));
     }
 
     private void Complete()
@@ -76,10 +95,10 @@ public class BattleParticleController : MonoBehaviour
         Action callback = onComplete;
         onComplete = null;
 
-        callback?.Invoke(); 
+        callback?.Invoke();
 
         //Destroy(gameObject);
-    } 
+    }
 
     public static bool HasActiveParticles()
     {

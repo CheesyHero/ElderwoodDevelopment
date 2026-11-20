@@ -99,6 +99,8 @@ public class RewardsManager : MonoBehaviour
             1 + (HasSpeedRun ? 1 : 0) + (HasDominion ? 1 : 0),
             max
         );
+
+        bonusRewards = 0;
     }
 
     public void MoveToNext()
@@ -122,13 +124,7 @@ public class RewardsManager : MonoBehaviour
             // GameManager.Inventory.AddItem(basicReward);
         }
         else
-        {
-            // GameManager.Inventory.AddItem(
-            //     bossReward ? basicReward : bossReward
-            // );
-
-            // Changing scene
-
+        { 
             GameManager.NextLevel();
             bonusRewards = 0;
         }

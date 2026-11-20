@@ -93,7 +93,7 @@ public class Army : MonoBehaviour
             Hero hero = party[i];
             hero.team = team;
             hero.Initialize();
-            hero.Refresh(1, true);
+            hero.Refresh(1, true, false);
         }
         for (int i = 0; i < units.Count; i++)
         {
@@ -107,7 +107,7 @@ public class Army : MonoBehaviour
 
             unit.team = team;
             unit.Initialize(true);
-            unit.Refresh(1, true);
+            unit.Refresh(1, true, false);
         }
     }
     public void Add(Hero hero)
@@ -117,7 +117,7 @@ public class Army : MonoBehaviour
 
         hero.team = team;
         hero.Initialize();
-        hero.Refresh(1, true);
+        hero.Refresh(1, true, false);
         party.Add(hero);
     }
     public virtual Unit PullRandomGeneration()

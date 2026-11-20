@@ -222,19 +222,25 @@ public class BattleCombatant : MonoBehaviour
     {
         if (battleEvent == null || routine != null) return;
 
-        if(turnsCharged < battleEvent.move.chargeTurns)
+        // The combatant may have been banished while their action was on the stack.
+        if (!battleEvent.owner || !battleEvent.source || isActiveAndEnabled == false)
+        {
+            AutoBattleManager.CompleteAction(battleEvent);
+            return;
+        }
+
+        if (turnsCharged < battleEvent.move.chargeTurns)
         {
             routine = StartCoroutine(ChargeTurn(battleEvent));
         }
         else
         {
-            // No more charge move
             chargeMove = null;
             turnsCharged = 0;
 
             CollectMods();
             routine = StartCoroutine(HitAllTargets(battleEvent));
-        } 
+        }
     }
     private List<BattleCombatant> FilterDefeated(List<BattleCombatant> input)
     {

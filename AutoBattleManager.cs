@@ -143,6 +143,7 @@ public class AutoBattleManager : StateMachine
 
         // Makes heroes leave accordingly
     }
+
     public static void SetNextTurn()
     {
         while (TurnOrder.Count > 0)
@@ -151,11 +152,12 @@ public class AutoBattleManager : StateMachine
 
             currentTurn = TurnOrder[0];
             TurnOrder.RemoveAt(0);
-            View();
 
-            if (!currentTurn.IsAlive)
+            // Skip destroyed, banished, inactive, or defeated heroes.
+            if (!currentTurn || !currentTurn.isActiveAndEnabled || !currentTurn.IsAlive)
                 continue;
 
+            View();
             currentTurn.NotifyTurnStart();
             Manager.Next();
             return;
@@ -164,6 +166,7 @@ public class AutoBattleManager : StateMachine
         currentTurn = null;
         Manager.ChangeState("round_end");
     }
+
 
     private static void PopNextTurn()
     { 
@@ -267,7 +270,32 @@ public class AutoBattleManager : StateMachine
         if (action == null) 
             return; 
 
-        bool removed = Stack.Remove(action); 
+        Stack.Remove(action); 
+
+        StackUpdatedCall();
+    }
+     
+    public static void RemoveHeroFromStack(BattleCombatant hero)
+    {
+        if (hero == null)
+            return;
+
+        List<BattleEvent> list = new();
+        foreach(var item in Stack)
+        {
+            if(item.source == hero)
+                list.Add(item);
+
+            else
+            {
+                foreach(var target in item.targets)
+                    if (target == hero)
+                        list.Add(item);
+            }
+        }
+
+        foreach(var item in list)
+            RemoveFromStack(item);
 
         StackUpdatedCall();
     }

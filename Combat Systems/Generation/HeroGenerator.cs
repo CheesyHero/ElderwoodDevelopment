@@ -10,7 +10,10 @@ public class HeroGenerator : ScriptableObject
     public Hero Copy(Team team)
     {
         var copy = hero.Copy();
-        copy.RollName(true);
+
+        if(hero.characterName == "") 
+            copy.RollName(true);
+
         copy.team = team;
 
         // copy.Initialize();

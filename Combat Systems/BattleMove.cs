@@ -385,7 +385,7 @@ public class BattleMove : Skill
         List<BattleCombatant> valids = new();
         foreach(var hero in BattleCombatant.AllCombatants)
         {
-            if(hero.hero.health.IsAlive && team.CompareEnemy(hero.team))
+            if(hero.isActiveAndEnabled && hero.IsAlive && team.CompareEnemy(hero.team))
                 valids.Add(hero);
         }
 
@@ -443,6 +443,7 @@ public class BattleMove : Skill
         else combatant.UseActionPoints(cost);
     }
 
+
     public BattleEvent GetReaction(BattleCombatant checker, BattleEvent action, FilterRule[] filters)
     {
         if (triggers == null || triggers.Length == 0) return null;
@@ -454,28 +455,59 @@ public class BattleMove : Skill
 
             if (item.TryResolveTargets(checker, this, action, filters, out List<BattleCombatant> results))
             {
-                if (results != null && results.Count > 0)
+                if (results == null || results.Count == 0) continue;
+
+                // Apply player filters to select valid primary targets.
+                results = FilterByPlayerFilters(checker, filters, new List<BattleCombatant>(results));
+                if (results == null || results.Count == 0) continue;
+
+                // Select one primary target for single/other moves.
+                results = PickOneRandomIfSingle(results);
+                if (results.Count == 0) continue;
+
+                // Expand the primary target to the move's full range.
+                List<BattleCombatant> fullPool = GetPreferedTeam(checker.team);
+
+                if (targetType == TargetTypes.all)
                 {
-                    results = FilterByPlayerFilters(checker, filters, new List<BattleCombatant>(results));
-                    if (results.Count == 0) continue;
-
-                    // CRITICAL: single target reactions must pick ONE if trigger returned multiple targets
-                    results = PickOneRandomIfSingle(results);
-                    if (results.Count == 0) continue;
-
-                    return CreateEvent(checker, results);
+                    results = fullPool;
                 }
+                else if (targetType == TargetTypes.self)
+                {
+                    results = ApplyRangeExtension(checker, fullPool);
+                }
+                else if (range != RangeExtension.none)
+                {
+                    List<BattleCombatant> expanded = new();
+
+                    foreach (var primary in results)
+                    {
+                        foreach (var target in ApplyRangeExtension(primary, fullPool))
+                        {
+                            if (!expanded.Contains(target))
+                                expanded.Add(target);
+                        }
+                    }
+
+                    results = expanded;
+                }
+
+                if (results == null || results.Count == 0) continue;
+
+                return CreateEvent(checker, results);
             }
         }
 
         return null;
     }
+
+
     public List<BattleCombatant> ResolveTargets(BattleCombatant checker, FilterRule[] filters)
     {
         if (checker == null)
             return new();
 
-        List<BattleCombatant> fullPool = GetPreferedTeam(checker.team);  
+        List<BattleCombatant> fullPool = GetPreferedTeam(checker.team);
 
         if (fullPool == null || fullPool.Count == 0)
             return new();
@@ -483,7 +515,7 @@ public class BattleMove : Skill
         List<BattleCombatant> candidatePool =
             melee
                 ? FilterByMeleeRange(new List<BattleCombatant>(fullPool))
-                : new List<BattleCombatant>(fullPool); 
+                : new List<BattleCombatant>(fullPool);
 
         List<BattleCombatant> candidates = targetType switch
         {
@@ -491,17 +523,25 @@ public class BattleMove : Skill
             TargetTypes.all => new List<BattleCombatant>(fullPool),
             TargetTypes.other => ExcludeSelf(checker, new List<BattleCombatant>(candidatePool)),
             _ => new List<BattleCombatant>(candidatePool)
-        }; 
+        };
 
-        candidates = FilterByPlayerFilters(checker, filters, candidates); 
+        // Filters determine whether the move has valid targets.
+        candidates = FilterByPlayerFilters(checker, filters, candidates);
 
         if (candidates == null || candidates.Count == 0)
             return new();
 
+        // All-target moves affect everyone, regardless of which
+        // targets satisfied the filters.
+        if (targetType == TargetTypes.all)
+            return fullPool;
+
+        // Single-target moves select a valid primary target,
+        // then expand to the full row or column if applicable.
         if (targetType == TargetTypes.singleTarget || targetType == TargetTypes.other)
         {
             int idx = UnityEngine.Random.Range(0, candidates.Count);
-            BattleCombatant primary = candidates[idx]; 
+            BattleCombatant primary = candidates[idx];
 
             return ApplyRangeExtension(primary, fullPool);
         }
@@ -511,14 +551,18 @@ public class BattleMove : Skill
 
         return candidates;
     }
+
     List<BattleCombatant> ApplyRangeExtension(BattleCombatant primary, List<BattleCombatant> fullPool)
     {
         if (primary == null) return new List<BattleCombatant>();
 
+        if (targetType == TargetTypes.all)
+            return fullPool;
+
         return range switch
         {
             RangeExtension.row => ExtendToRow(primary, fullPool),
-            RangeExtension.column => ExtendToColumn(primary, fullPool),
+            RangeExtension.column => ExtendToColumn(primary, fullPool), 
             _ => new List<BattleCombatant>() { primary },
         };
     }

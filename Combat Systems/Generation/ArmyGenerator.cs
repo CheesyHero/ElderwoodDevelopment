@@ -65,7 +65,7 @@ public class ArmyGenerator : ScriptableObject
              
             Hero h = new(5, item);
             h.Initialize();
-            h.Refresh(1, true);
+            h.Refresh(1, true, false);
             var equipment = h.equipment;
             equipment.weapon = h.heroClass.startingEquipment.weapon;
             equipment.armor = h.heroClass.startingEquipment.armor;
